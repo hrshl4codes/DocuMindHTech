@@ -487,6 +487,7 @@
             }
 
             showLoading(true);
+            console.log('📤 Uploading to:', `${API_BASE_URL}/api/upload`);
             
             fetch(`${API_BASE_URL}/api/upload`, {
                 method: 'POST',
@@ -523,6 +524,10 @@
             const startTime = Date.now();
             showLoading(true);
             
+            console.log('❓ Querying:', queryInput.value);
+            console.log('📄 Document ID:', currentDocumentId);
+            console.log('🌐 API URL:', `${API_BASE_URL}/api/query`);
+            
             fetch(`${API_BASE_URL}/api/query`, {
                 method: 'POST',
                 headers: {
@@ -533,13 +538,19 @@
                     question: queryInput.value
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('📡 Response status:', response.status);
+                return response.json();
+            })
             .then(data => {
+                console.log('📦 Response data:', data);
                 const responseTime = (Date.now() - startTime) / 1000;
                 
                 if (data.success) {
+                    console.log('✅ Query successful, displaying answer');
                     displayAnswer(data.answer, data.citations, responseTime, data.stats);
                 } else {
+                    console.log('❌ Query failed:', data.error);
                     showError(data.error || 'Query failed');
                 }
             })
@@ -552,6 +563,8 @@
         }
 
         function displayAnswer(answerText, citationsList, responseTime, stats) {
+            console.log('🎯 displayAnswer called with:', { answerText, citationsList, responseTime, stats });
+            
             // Display answer with inline citations
             answer.innerHTML = `<div class="answer-text">${answerText}</div>`;
             
@@ -586,6 +599,7 @@
             document.getElementById('citationCount').textContent = citationsList?.length || 0;
             document.getElementById('costEstimate').textContent = '$' + (stats?.estimated_cost || 0).toFixed(4);
             
+            console.log('📊 Showing results section');
             resultsSection.style.display = 'block';
             stats.style.display = 'grid';
         }
