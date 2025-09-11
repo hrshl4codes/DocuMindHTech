@@ -14,7 +14,9 @@ function App() {
   const [success, setSuccess] = useState('');
   const [fileInfo, setFileInfo] = useState(null);
 
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://documindrex.onrender.com';
+  // Detect if running locally or in production
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const API_BASE_URL = process.env.REACT_APP_API_URL || (isLocal ? '' : 'https://documindrex.onrender.com');
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
