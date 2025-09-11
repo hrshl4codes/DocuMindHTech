@@ -443,18 +443,33 @@ def create_app():
             # Check if frontend directory exists
             frontend_exists = os.path.exists("frontend")
             index_exists = os.path.exists("frontend/index.html")
+            build_exists = os.path.exists("frontend/build")
             
             # Get file size if it exists
             file_size = 0
             if index_exists:
                 file_size = os.path.getsize("frontend/index.html")
             
+            # Get environment variables
+            env_vars = {
+                "HOST": os.getenv("HOST", "0.0.0.0"),
+                "PORT": os.getenv("PORT", "8000"),
+                "VECTOR_DB_PROVIDER": os.getenv("VECTOR_DB_PROVIDER", "pinecone"),
+                "RERANKER_PROVIDER": os.getenv("RERANKER_PROVIDER", "cohere"),
+                "PYTHON_VERSION": os.getenv("PYTHON_VERSION", "3.11.0"),
+                "NODE_VERSION": os.getenv("NODE_VERSION", "18.17.0"),
+                "REACT_APP_API_URL": os.getenv("REACT_APP_API_URL", "https://documindrex.onrender.com"),
+                "RELOAD": os.getenv("RELOAD", "false")
+            }
+            
             return {
                 "frontend_directory_exists": frontend_exists,
                 "index_html_exists": index_exists,
+                "build_directory_exists": build_exists,
                 "file_size_bytes": file_size,
                 "current_directory": os.getcwd(),
-                "directory_contents": os.listdir(".") if os.path.exists(".") else "Directory not found"
+                "directory_contents": os.listdir(".") if os.path.exists(".") else "Directory not found",
+                "environment_variables": env_vars
             }
         except Exception as e:
             return {"error": str(e)}
@@ -521,6 +536,23 @@ if __name__ == "__main__":
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", 8000))
     reload = os.getenv("RELOAD", "false").lower() == "true"
+    
+    # Get additional environment variables
+    vector_db_provider = os.getenv("VECTOR_DB_PROVIDER", "pinecone")
+    reranker_provider = os.getenv("RERANKER_PROVIDER", "cohere")
+    python_version = os.getenv("PYTHON_VERSION", "3.11.0")
+    node_version = os.getenv("NODE_VERSION", "18.17.0")
+    react_app_api_url = os.getenv("REACT_APP_API_URL", "https://documindrex.onrender.com")
+    
+    print(f"🔧 Environment Configuration:")
+    print(f"   HOST: {host}")
+    print(f"   PORT: {port}")
+    print(f"   VECTOR_DB_PROVIDER: {vector_db_provider}")
+    print(f"   RERANKER_PROVIDER: {reranker_provider}")
+    print(f"   PYTHON_VERSION: {python_version}")
+    print(f"   NODE_VERSION: {node_version}")
+    print(f"   REACT_APP_API_URL: {react_app_api_url}")
+    print(f"   RELOAD: {reload}")
     
     print(f"🌐 Server starting on {host}:{port}")
     print(f"📚 API Documentation: http://{host}:{port}/docs")
