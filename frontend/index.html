@@ -405,7 +405,13 @@
         // Global variables
         let currentDocument = null;
         let currentDocumentId = null;
-        const API_BASE_URL = 'https://documindrex.onrender.com';
+        
+        // Detect if running locally or in production
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const API_BASE_URL = isLocal ? '' : 'https://documindrex.onrender.com';
+        
+        console.log('🌐 API Base URL:', API_BASE_URL);
+        console.log('🔍 Is Local:', isLocal);
 
         // DOM elements
         const uploadArea = document.getElementById('uploadArea');
