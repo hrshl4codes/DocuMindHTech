@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocuMind AI Professional</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .upload-section, .query-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .upload-area {
+            border: 3px dashed #bdc3c7;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            border-color: #3498db;
+            background-color: #f8f9fa;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #bdc3c7;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .text-input {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 10px;
+            font-size: 1rem;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .query-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 10px;
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+
+        .query-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+        }
+
+        .results-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .answer {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .answer-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .citations {
+            background: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .citations h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .citations ol {
+            list-style: none;
+            counter-reset: citation-counter;
+        }
+
+        .citations li {
+            counter-increment: citation-counter;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .citations li::before {
+            content: "[" counter(citation-counter) "]";
+            font-weight: bold;
+            color: #3498db;
+            margin-right: 10px;
+        }
+
+        .citation-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .citation-meta {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+
+        .citation-excerpt {
+            font-style: italic;
+            color: #555;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 3px solid #3498db;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #e74c3c;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            background: #27ae60;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .file-info {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3498db;
+        }
+
+        .file-name {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .file-size {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 DocuMind AI</h1>
+            <p>Professional Document Intelligence System</p>
+        </div>
+
+        <div class="main-content">
+            <div class="upload-section">
+                <h2 class="section-title">📄 Document Upload</h2>
+                
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">
+                        <strong>Click to upload</strong> or drag and drop<br>
+                        <small>Supports PDF, DOCX, TXT, and more</small>
+                    </div>
+                </div>
+                
+                <input type="file" id="fileInput" class="file-input" accept=".pdf,.docx,.txt,.md">
+                
+                <div class="file-info" id="fileInfo" style="display: none;">
+                    <div class="file-name" id="fileName"></div>
+                    <div class="file-size" id="fileSize"></div>
+                </div>
+
+                <div class="section-title">📝 Or Paste Text</div>
+                <textarea 
+                    id="textInput" 
+                    class="text-input" 
+                    placeholder="Paste your document text here..."
+                ></textarea>
+                
+                <button id="uploadBtn" class="btn">Upload Document</button>
+                <button id="clearBtn" class="btn btn-secondary">Clear</button>
+            </div>
+
+            <div class="query-section">
+                <h2 class="section-title">❓ Ask Questions</h2>
+                
+                <input 
+                    type="text" 
+                    id="queryInput" 
+                    class="query-input" 
+                    placeholder="What would you like to know about the document?"
+                >
+                
+                <button id="queryBtn" class="btn">Ask Question</button>
+                <button id="clearQueryBtn" class="btn btn-secondary">Clear Query</button>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <div>Processing your request...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <h2 class="section-title">💡 Answer</h2>
+            <div id="answer"></div>
+            <div id="citations"></div>
+        </div>
+
+        <div class="stats" id="stats" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-value" id="responseTime">0s</div>
+                <div class="stat-label">Response Time</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="tokenCount">0</div>
+                <div class="stat-label">Estimated Tokens</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="citationCount">0</div>
+                <div class="stat-label">Citations</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="costEstimate">$0.00</div>
+                <div class="stat-label">Estimated Cost</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentDocument = null;
+        let currentDocumentId = null;
+        const API_BASE_URL = 'https://documindrex.onrender.com';
+
+        // DOM elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const textInput = document.getElementById('textInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const queryInput = document.getElementById('queryInput');
+        const queryBtn = document.getElementById('queryBtn');
+        const clearQueryBtn = document.getElementById('clearQueryBtn');
+        const loading = document.getElementById('loading');
+        const resultsSection = document.getElementById('resultsSection');
+        const answer = document.getElementById('answer');
+        const citations = document.getElementById('citations');
+        const stats = document.getElementById('stats');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+
+        // Event listeners
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+        uploadArea.addEventListener('drop', handleDrop);
+        fileInput.addEventListener('change', handleFileSelect);
+        uploadBtn.addEventListener('click', handleUpload);
+        clearBtn.addEventListener('click', handleClear);
+        queryBtn.addEventListener('click', handleQuery);
+        clearQueryBtn.addEventListener('click', handleClearQuery);
+
+        // Drag and drop handlers
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect({ target: { files: files } });
+            }
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                currentDocument = file;
+                fileName.textContent = file.name;
+                fileSize.textContent = formatFileSize(file.size);
+                fileInfo.style.display = 'block';
+            }
+        }
+
+        function handleUpload() {
+            if (!currentDocument && !textInput.value.trim()) {
+                showError('Please select a file or enter text');
+                return;
+            }
+
+            const formData = new FormData();
+            if (currentDocument) {
+                formData.append('file', currentDocument);
+            } else {
+                formData.append('text', textInput.value);
+            }
+
+            showLoading(true);
+            
+            fetch(`${API_BASE_URL}/api/upload`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentDocumentId = data.document_id;
+                    showSuccess('Document uploaded successfully!');
+                } else {
+                    showError(data.error || 'Upload failed');
+                }
+            })
+            .catch(error => {
+                showError('Upload failed: ' + error.message);
+            })
+            .finally(() => {
+                showLoading(false);
+            });
+        }
+
+        function handleQuery() {
+            if (!queryInput.value.trim()) {
+                showError('Please enter a question');
+                return;
+            }
+
+            if (!currentDocumentId) {
+                showError('Please upload a document first');
+                return;
+            }
+
+            const startTime = Date.now();
+            showLoading(true);
+            
+            fetch(`${API_BASE_URL}/api/query`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    document_id: currentDocumentId,
+                    question: queryInput.value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const responseTime = (Date.now() - startTime) / 1000;
+                
+                if (data.success) {
+                    displayAnswer(data.answer, data.citations, responseTime, data.stats);
+                } else {
+                    showError(data.error || 'Query failed');
+                }
+            })
+            .catch(error => {
+                showError('Query failed: ' + error.message);
+            })
+            .finally(() => {
+                showLoading(false);
+            });
+        }
+
+        function displayAnswer(answerText, citationsList, responseTime, stats) {
+            // Display answer with inline citations
+            answer.innerHTML = `<div class="answer-text">${answerText}</div>`;
+            
+            // Display citations
+            if (citationsList && citationsList.length > 0) {
+                let citationsHtml = '<div class="citations"><h4>Sources:</h4><ol>';
+                citationsList.forEach(citation => {
+                    citationsHtml += `
+                        <li>
+                            <div class="citation-title">${citation.title}</div>
+                            <div class="citation-meta">
+                                <strong>Source:</strong> ${citation.source}<br>
+                                <strong>Section:</strong> ${citation.section}<br>
+                                <strong>Position:</strong> ${citation.position}
+                            </div>
+                            <details>
+                                <summary>View excerpt</summary>
+                                <div class="citation-excerpt">${citation.text.substring(0, 200)}...</div>
+                            </details>
+                        </li>
+                    `;
+                });
+                citationsHtml += '</ol></div>';
+                citations.innerHTML = citationsHtml;
+            } else {
+                citations.innerHTML = '';
+            }
+            
+            // Display stats
+            document.getElementById('responseTime').textContent = responseTime.toFixed(2) + 's';
+            document.getElementById('tokenCount').textContent = stats?.estimated_tokens || 0;
+            document.getElementById('citationCount').textContent = citationsList?.length || 0;
+            document.getElementById('costEstimate').textContent = '$' + (stats?.estimated_cost || 0).toFixed(4);
+            
+            resultsSection.style.display = 'block';
+            stats.style.display = 'grid';
+        }
+
+        function handleClear() {
+            currentDocument = null;
+            currentDocumentId = null;
+            fileInput.value = '';
+            textInput.value = '';
+            fileInfo.style.display = 'none';
+            resultsSection.style.display = 'none';
+            stats.style.display = 'none';
+        }
+
+        function handleClearQuery() {
+            queryInput.value = '';
+        }
+
+        function showLoading(show) {
+            loading.style.display = show ? 'block' : 'none';
+            queryBtn.disabled = show;
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            document.querySelector('.container').insertBefore(errorDiv, document.querySelector('.main-content'));
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success';
+            successDiv.textContent = message;
+            document.querySelector('.container').insertBefore(successDiv, document.querySelector('.main-content'));
+            setTimeout(() => successDiv.remove(), 3000);
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Initialize
+        console.log('HackRX DODS Track B Mini RAG initialized');
+    </script>
+</body>
+</html>
