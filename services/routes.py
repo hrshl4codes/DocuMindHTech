@@ -168,14 +168,11 @@ async def delete_document(document_id: str):
     Delete a document and its chunks
     """
     try:
-        if document_id not in api_service.documents:
+        from services import persistence
+        if not persistence.get_document(document_id):
             raise HTTPException(status_code=404, detail="Document not found")
-        
-        # Remove from memory
-        del api_service.documents[document_id]
-        if document_id in api_service.document_chunks:
-            del api_service.document_chunks[document_id]
-        
+
+        persistence.delete_document(document_id)
         return {"success": True, "message": "Document deleted successfully"}
         
     except HTTPException:

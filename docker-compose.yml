@@ -12,6 +12,9 @@ services:
     environment:
       HOST: "0.0.0.0"
       PORT: "8000"
+      DB_PATH: "/app/data/documind.db"
+    volumes:
+      - db_data:/app/data
 
   frontend:
     build:
@@ -21,3 +24,6 @@ services:
       - "3000:80"
     depends_on:
       - backend
+
+volumes:
+  db_data:

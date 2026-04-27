@@ -382,15 +382,33 @@ def create_app():
     async def test_html():
         return HTMLResponse(content="<h1>HTML Test</h1><p>If you see this, HTML responses are working!</p>")
     
-    # Health check endpoint
     @app.get("/health")
     async def health_check():
+        checks = {}
+
+        # vector DB
+        try:
+            from services.cloud_vector_service import get_cloud_vector_db
+            vdb = get_cloud_vector_db()
+            checks["vector_db"] = vdb.provider if vdb.collection else "unavailable"
+        except Exception:
+            checks["vector_db"] = "unavailable"
+
+        # API keys present (existence only, not validity)
+        checks["gemini_key"] = bool(os.getenv("GEMINI_API_KEY"))
+        checks["pinecone_key"] = bool(os.getenv("PINECONE_API_KEY"))
+
+        # document count
+        try:
+            from services import persistence
+            checks["documents"] = len(persistence.list_documents())
+        except Exception:
+            checks["documents"] = "unavailable"
+
+        healthy = checks["vector_db"] != "unavailable"
         return {
-            "status": "healthy",
-            "system": "documind_ai",
-            "message": "Service is running",
-            "version": "2.0.0",
-            "mode": "minimal"
+            "status": "ok" if healthy else "degraded",
+            "checks": checks,
         }
     
     # Favicon endpoint to prevent 404 errors
