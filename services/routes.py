@@ -4,37 +4,26 @@ FastAPI routes for the DocuMind AI system
 """
 
 import os
-import uuid
 from typing import Optional
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 from services.api_service import get_api_service
+from services.cloud_vector_service import COLLECTION_NAME, EMBEDDING_DIMENSION
 
-# Initialize router
 router = APIRouter(prefix="/api", tags=["DocuMind AI"])
 
-# Pydantic models
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
+
+BLOCKED_EXTENSIONS = {
+    "exe", "sh", "bat", "cmd", "ps1", "py", "js", "php", "rb", "pl",
+}
+
 class QueryRequest(BaseModel):
     document_id: str
     question: str
     top_k: Optional[int] = 10
-
-class TextUploadRequest(BaseModel):
-    text: str
-    title: Optional[str] = ""
-    source: Optional[str] = "text_input"
-
-class SystemInfoResponse(BaseModel):
-    vector_database: dict
-    chunking: dict
-    reranker: dict
-    documents_uploaded: int
-    total_chunks: int
-
-# Initialize API service
-api_service = get_api_service()
 
 @router.get("/", response_class=HTMLResponse)
 async def get_frontend():
@@ -52,73 +41,55 @@ async def upload_document(
     title: Optional[str] = Form(""),
     source: Optional[str] = Form("")
 ):
-    """
-    Upload a document (file or text)
-    """
+    api_service = get_api_service()
     try:
         if file and file.filename:
-            # Handle file upload
+            ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+
+            if ext in BLOCKED_EXTENSIONS:
+                raise HTTPException(status_code=400, detail=f"File type .{ext} is not allowed")
+
             content = await file.read()
-            
-            # Extract text based on file type
-            if file.filename.endswith('.txt'):
-                content_str = content.decode('utf-8')
-            elif file.filename.endswith('.md'):
-                content_str = content.decode('utf-8')
-            elif file.filename.endswith('.pdf'):
-                # Use PyMuPDF for PDF processing
-                import fitz
-                doc = fitz.open(stream=content, filetype="pdf")
-                content_str = ""
-                for page in doc:
-                    content_str += page.get_text()
-                doc.close()
-            elif file.filename.endswith('.docx'):
-                # Use python-docx for DOCX processing
-                from docx import Document
-                import io
-                doc = Document(io.BytesIO(content))
-                content_str = "\n".join([paragraph.text for paragraph in doc.paragraphs])
-            else:
-                # For other file types, try to decode as text
-                content_str = content.decode('utf-8', errors='ignore')
-            
+
+            if len(content) > MAX_UPLOAD_BYTES:
+                raise HTTPException(status_code=413, detail="File exceeds 10 MB limit")
+
+            from services.text_extract import process_file_content
+            content_str = await process_file_content(content, ext, file.filename)
+
             result = await api_service.upload_document(
                 content=content_str,
                 source=source or file.filename,
                 title=title or file.filename,
-                doc_type=file.filename.split('.')[-1] if '.' in file.filename else 'unknown'
+                doc_type=ext or "unknown",
             )
-            
+
         elif text:
-            # Handle text upload
             result = await api_service.upload_document(
                 content=text,
                 source=source or "text_input",
                 title=title or "Text Document",
-                doc_type="text"
+                doc_type="text",
             )
         else:
             raise HTTPException(status_code=400, detail="Either file or text must be provided")
-        
+
         return result
-        
+
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/query")
 async def query_document(request: QueryRequest):
-    """
-    Query a document with a question
-    """
     try:
-        result = await api_service.query_document(
+        result = await get_api_service().query_document(
             document_id=request.document_id,
             question=request.question,
-            top_k=request.top_k
+            top_k=request.top_k,
         )
         return result
-        
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -128,7 +99,7 @@ async def list_documents():
     List all uploaded documents
     """
     try:
-        documents = api_service.list_documents()
+        documents = get_api_service().list_documents()
         return {"documents": documents}
         
     except Exception as e:
@@ -140,7 +111,7 @@ async def get_document_info(document_id: str):
     Get information about a specific document
     """
     try:
-        doc_info = api_service.get_document_info(document_id)
+        doc_info = get_api_service().get_document_info(document_id)
         if not doc_info:
             raise HTTPException(status_code=404, detail="Document not found")
         return doc_info
@@ -156,9 +127,7 @@ async def get_system_info():
     Get system configuration and status
     """
     try:
-        info = api_service.get_system_info()
-        return info
-        
+        return get_api_service().get_system_info()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -186,18 +155,9 @@ async def health_check():
     Health check endpoint
     """
     try:
-        system_info = api_service.get_system_info()
-        return {
-            "status": "healthy",
-            "message": "Track B Mini RAG API is operational",
-            "system_info": system_info
-        }
-        
+        return {"status": "healthy", "system_info": get_api_service().get_system_info()}
     except Exception as e:
-        return {
-            "status": "unhealthy",
-            "message": f"System error: {str(e)}"
-        }
+        return {"status": "unhealthy", "message": str(e)}
 
 # Additional utility endpoints for Track B compliance
 
@@ -207,8 +167,7 @@ async def get_chunking_parameters():
     Get current chunking parameters
     """
     try:
-        params = api_service.chunker.get_chunking_parameters()
-        return params
+        return get_api_service().chunker.get_chunking_parameters()
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -219,8 +178,7 @@ async def get_reranker_info():
     Get reranker configuration information
     """
     try:
-        info = api_service.reranker.get_reranker_info()
-        return info
+        return get_api_service().reranker.get_reranker_info()
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -231,14 +189,13 @@ async def get_vector_db_info():
     Get vector database configuration information
     """
     try:
-        info = {
-            "provider": api_service.vector_db.provider,
-            "collection_name": "hackrx_documents",
-            "embedding_dimension": 3072,
-            "base_url": api_service.vector_db.base_url,
-            "api_configured": bool(api_service.vector_db.api_key)
+        vdb = get_api_service().vector_db
+        return {
+            "provider":           vdb.provider,
+            "collection_name":    COLLECTION_NAME,
+            "embedding_dimension": EMBEDDING_DIMENSION,
+            "api_configured":     bool(vdb.api_key),
         }
-        return info
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
