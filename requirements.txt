@@ -1,5 +1,4 @@
-# DocuMind AI - Minimal Requirements for Render Deployment
-# This file removes Pinecone temporarily to avoid package conflicts
+# DocuMind AI requirements
 
 # Core FastAPI and web framework
 fastapi>=0.100.0
@@ -10,6 +9,7 @@ python-dotenv>=1.0.0
 # Essential AI libraries
 openai>=1.40.0
 google-generativeai>=0.3.0
+pinecone>=3.0.0
 
 # Text processing
 langchain>=0.1.0

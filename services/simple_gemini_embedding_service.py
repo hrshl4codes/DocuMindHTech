@@ -2,8 +2,7 @@ import os
 import asyncio
 import random
 import numpy as np
-import requests
-import json
+import httpx
 from asyncio import Semaphore
 from typing import List
 from dotenv import load_dotenv
@@ -34,21 +33,20 @@ async def gemini_embed(texts: List[str]) -> np.ndarray:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/embedding-001:embedContent?key={GEMINI_API_KEY}"
                 
                 embeddings = []
-                for text in texts:
-                    payload = {
-                        "content": {
-                            "parts": [{"text": text}]
-                        },
-                        "taskType": "RETRIEVAL_DOCUMENT"
-                    }
-                    
-                    response = requests.post(url, json=payload)
-                    response.raise_for_status()
-                    
-                    result = response.json()
-                    embedding = result['embedding']['values']
-                    embeddings.append(embedding)
-                
+                async with httpx.AsyncClient(timeout=30.0) as client:
+                    for text in texts:
+                        payload = {
+                            "content": {
+                                "parts": [{"text": text}]
+                            },
+                            "taskType": "RETRIEVAL_DOCUMENT"
+                        }
+                        response = await client.post(url, json=payload)
+                        response.raise_for_status()
+                        result = response.json()
+                        embedding = result['embedding']['values']
+                        embeddings.append(embedding)
+
                 return np.array(embeddings, dtype=np.float32)
             except Exception as e:
                 if "rate_limit" in str(e).lower() or "quota" in str(e).lower():
@@ -77,11 +75,11 @@ async def gemini_embed_query(query: str) -> np.ndarray:
                     "taskType": "RETRIEVAL_QUERY"
                 }
                 
-                response = requests.post(url, json=payload)
-                response.raise_for_status()
-                
-                result = response.json()
-                embedding = result['embedding']['values']
+                async with httpx.AsyncClient(timeout=30.0) as client:
+                    response = await client.post(url, json=payload)
+                    response.raise_for_status()
+                    result = response.json()
+                    embedding = result['embedding']['values']
                 return np.array([embedding], dtype=np.float32)
             except Exception as e:
                 if "rate_limit" in str(e).lower() or "quota" in str(e).lower():

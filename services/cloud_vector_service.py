@@ -24,7 +24,7 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 # Collection/Index configuration
-COLLECTION_NAME = "hackrx-documents"
+COLLECTION_NAME = "hackrx_documents"
 EMBEDDING_DIMENSION = 768  # Gemini embedding-001 dimensions
 
 class CloudVectorDB:
@@ -38,16 +38,22 @@ class CloudVectorDB:
     
     def _initialize_client(self):
         """Initialize the appropriate cloud vector database client"""
-        if self.provider == "pinecone":
-            self._init_pinecone()
-        elif self.provider == "weaviate":
-            self._init_weaviate()
-        elif self.provider == "qdrant":
-            self._init_qdrant()
-        elif self.provider == "supabase":
-            self._init_supabase()
-        else:
-            raise ValueError(f"Unsupported vector database provider: {self.provider}")
+        try:
+            if self.provider == "pinecone":
+                self._init_pinecone()
+            elif self.provider == "weaviate":
+                self._init_weaviate()
+            elif self.provider == "qdrant":
+                self._init_qdrant()
+            elif self.provider == "supabase":
+                self._init_supabase()
+            else:
+                raise ValueError(f"Unsupported vector database provider: {self.provider}")
+        except Exception as e:
+            print(f"⚠️  Vector DB ({self.provider}) unavailable: {e}")
+            print("   Set the required API keys to enable vector search.")
+            self.client = None
+            self.collection = None
     
     def _init_pinecone(self):
         """Initialize Pinecone client"""
