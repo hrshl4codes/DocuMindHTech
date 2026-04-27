@@ -12,7 +12,8 @@
     "axios": "^1.4.0",
     "react-dropzone": "^14.2.3",
     "lucide-react": "^0.263.1",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "ajv": "^8.11.0"
   },
   "scripts": {
     "start": "react-scripts start",
