@@ -22,7 +22,7 @@ Query:
 
 ```
 ┌─────────────┐        ┌──────────────────────────────────────┐
-│   Browser   │        │              Backend (FastAPI)        │
+│   Browser   │        │              Backend (FastAPI)       │
 │  React SPA  │◄──────►│  /api/upload   /api/query   /health  │
 └─────────────┘        │                                      │
       │                │  services/                           │
@@ -76,8 +76,8 @@ cd frontend && npm install && npm start
 | Backend     | FastAPI, Python 3.11, uvicorn                |
 | Frontend    | React 18, served via nginx                   |
 | Embeddings  | Google Gemini `embedding-001` (768d)         |
-| Vector DB   | Pinecone (primary) — Weaviate / Qdrant / Supabase supported |
-| Reranker    | Cohere Rerank-3 — Jina / Voyage / BGE supported |
+| Vector DB   | Pinecone (primary) - Weaviate / Qdrant / Supabase supported |
+| Reranker    | Cohere Rerank-3 - Jina / Voyage / BGE supported |
 | LLM         | Gemini 2.0 Flash (primary), OpenAI GPT-4 (fallback) |
 | Chunking    | LangChain `RecursiveCharacterTextSplitter`   |
 
