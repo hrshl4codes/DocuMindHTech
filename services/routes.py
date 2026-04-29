@@ -228,10 +228,10 @@ async def evaluate_system(document_id: Optional[str] = None):
         
         # Run actual evaluation
         evaluation = get_track_b_evaluation()
-        results = await evaluation.evaluate_document(api_service, document_id)
-        
+        results = await evaluation.evaluate_document(get_api_service(), document_id)
+
         return results
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -242,10 +242,10 @@ async def evaluate_document(document_id: str):
     """
     try:
         from evaluation.track_b_evaluation import get_track_b_evaluation
-        
+
         evaluation = get_track_b_evaluation()
-        results = await evaluation.evaluate_document(api_service, document_id)
-        
+        results = await evaluation.evaluate_document(get_api_service(), document_id)
+
         return results
         
     except Exception as e:
