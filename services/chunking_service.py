@@ -9,6 +9,9 @@ import hashlib
 from typing import List, Dict, Any, Tuple
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.text_splitter import TokenTextSplitter
+from services.logger import get_logger
+
+log = get_logger("chunking")
 
 class DocuMindChunkingService:
     """Intelligent chunking service for DocuMind AI"""
@@ -93,7 +96,7 @@ class DocuMindChunkingService:
             )
             chunk_metadata.append(metadata)
         
-        print(f"✅ Created {len(chunks)} chunks for document: {title or source}")
+        log.info("created %d chunks for document: %s", len(chunks), title or source)
         return chunk_metadata
     
     def _clean_content(self, content: str) -> str:

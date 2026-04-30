@@ -126,11 +126,6 @@ def sanitize_text(text: str) -> str:
 
     if should_block:
         # print dangerous prompt injection text
-        print(
-            f"[POTENTIAL PROMPT INJECTION REMOVED]: {text[:500]}... (Found {len(dangerous_matches)} dangerous phrases, high_risk={has_high_risk}, script_tags={has_script_tags}, academic={is_likely_academic})"
-        )
-        print(f"Dangerous matches found: {dangerous_matches}")
-        print(f"HTML matches found: {html_matches[:10]}")  # First 10 HTML matches
         logging.warning(
             f"[POTENTIAL PROMPT INJECTION REMOVED]: {text[:200]}... (Found {len(dangerous_matches)} dangerous phrases, high_risk={has_high_risk}, script_tags={has_script_tags}, academic={is_likely_academic})"
         )
@@ -535,7 +530,6 @@ async def extract_text_from_pptx(path: str) -> str:
                 tesseract_desc = await extract_text_with_tesseract(image_data)
                 texts.append("[Vision Text - Tesseract]: " + tesseract_desc)
                 logging.info(f"Tesseract Text: {tesseract_desc}")
-                print(f"Tesseract Text: {tesseract_desc}")
 
                 # if not tesseract_desc:
                 #     oai_desc = await analyze_image_with_openai(image_data)

@@ -6,17 +6,16 @@ import httpx
 from asyncio import Semaphore
 from typing import List
 from dotenv import load_dotenv
+from services.logger import get_logger
 
 load_dotenv()
 
-# Configuration
+log = get_logger("gemini_embeddings")
+
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 MAX_CONCURRENT_EMBEDDINGS = 5
 MAX_RETRIES = 3
 EMBEDDING_RETRY_DELAY = 1.0
-
-print("🚀 Initializing Simple Gemini Embeddings...")
-print("✅ Simple Gemini Embeddings initialized.")
 
 # Rate limiting semaphore
 embedding_semaphore = Semaphore(MAX_CONCURRENT_EMBEDDINGS)
@@ -52,10 +51,10 @@ async def gemini_embed(texts: List[str]) -> np.ndarray:
                 if "rate_limit" in str(e).lower() or "quota" in str(e).lower():
                     if attempt < MAX_RETRIES - 1:
                         delay = EMBEDDING_RETRY_DELAY * (2**attempt) + random.uniform(0, 1)
-                        print(f"⚠ Embedding rate limit hit, retrying in {delay:.2f}s (attempt {attempt + 1})")
+                        log.warning("embedding rate limit hit, retrying in %.2fs (attempt %d)", delay, attempt + 1)
                         await asyncio.sleep(delay)
                         continue
-                print(f"Error creating Gemini embeddings: {e}")
+                log.error("error creating Gemini embeddings: %s", e)
                 raise
 
 
@@ -85,9 +84,9 @@ async def gemini_embed_query(query: str) -> np.ndarray:
                 if "rate_limit" in str(e).lower() or "quota" in str(e).lower():
                     if attempt < MAX_RETRIES - 1:
                         delay = EMBEDDING_RETRY_DELAY * (2**attempt) + random.uniform(0, 1)
-                        print(f"⚠ Query embedding rate limit hit, retrying in {delay:.2f}s (attempt {attempt + 1})")
+                        log.warning("query embedding rate limit hit, retrying in %.2fs (attempt %d)", delay, attempt + 1)
                         await asyncio.sleep(delay)
                         continue
-                print(f"Error creating Gemini query embedding: {e}")
+                log.error("error creating Gemini query embedding: %s", e)
                 raise
 

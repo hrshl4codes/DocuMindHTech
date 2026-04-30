@@ -11,8 +11,11 @@ from asyncio import Semaphore
 from typing import List, Dict, Any
 from openai import AsyncOpenAI
 from dotenv import load_dotenv
+from services.logger import get_logger
 
 load_dotenv()
+
+log = get_logger("chat")
 
 # AI model configuration
 GENERATION_OPENAI_API_KEY = os.getenv("GENERATION_OPENAI_API_KEY")
@@ -70,7 +73,7 @@ Please provide a comprehensive answer with inline citations where appropriate. B
             return "Could not generate an answer from the model."
             
     except Exception as e:
-        print(f"Error in gemini_chat: {e}")
+        log.error("gemini_chat failed: %s", e)
         # Fallback to OpenAI if Gemini fails
         return await openai_chat(question, context_snippets)
 
@@ -123,12 +126,10 @@ Please provide a comprehensive answer with inline citations where appropriate.""
                 if "rate_limit" in str(e).lower() or "quota" in str(e).lower():
                     if attempt < MAX_RETRIES - 1:
                         delay = LLM_RETRY_DELAY * (2**attempt) + random.uniform(0, 1)
-                        print(
-                            f"⚠ LLM rate limit hit, retrying in {delay:.2f}s (attempt {attempt + 1})"
-                        )
+                        log.warning("LLM rate limit hit, retrying in %.2fs (attempt %d)", delay, attempt + 1)
                         await asyncio.sleep(delay)
                         continue
-                print(f"Error in openai_chat: {e}")
+                log.error("openai_chat failed: %s", e)
                 return f"Error generating response: {str(e)}"
 
 
@@ -243,12 +244,10 @@ Analyze the document and URL data, follow any multi-step instructions mentioned 
                 if "rate_limit" in str(e).lower() or "quota" in str(e).lower():
                     if attempt < MAX_RETRIES - 1:
                         delay = LLM_RETRY_DELAY * (2**attempt) + random.uniform(0, 1)
-                        print(
-                            f"⚠ Intelligent agent rate limit hit, retrying in {delay:.2f}s (attempt {attempt + 1})"
-                        )
+                        log.warning("intelligent agent rate limit hit, retrying in %.2fs (attempt %d)", delay, attempt + 1)
                         await asyncio.sleep(delay)
                         continue
-                print(f"Error in intelligent_agent_chat: {e}")
+                log.error("intelligent_agent_chat failed: %s", e)
                 return f"Error generating intelligent response: {str(e)}"
 
 
@@ -291,5 +290,5 @@ async def direct_context_answer(
         return answer.strip() if answer else "No response generated"
 
     except Exception as e:
-        print(f"Direct context processing error: {e}")
+        log.error("direct_context_answer failed: %s", e)
         return f"Error generating direct answer: {str(e)}"

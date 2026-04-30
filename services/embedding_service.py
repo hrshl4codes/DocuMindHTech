@@ -6,22 +6,21 @@ from asyncio import Semaphore
 from typing import List
 from langchain_openai import OpenAIEmbeddings
 from dotenv import load_dotenv
+from services.logger import get_logger
 
 load_dotenv()
 
-# Configuration
+log = get_logger("openai_embeddings")
+
 GENERATION_OPENAI_API_KEY = os.getenv("GENERATION_OPENAI_API_KEY")
 OPENAI_EMBEDDING_MODEL = "text-embedding-3-large"
 MAX_CONCURRENT_EMBEDDINGS = 5
 MAX_RETRIES = 3
 EMBEDDING_RETRY_DELAY = 1.0
 
-# Initialize OpenAI Embeddings service
-print("🚀 Initializing OpenAI Embeddings...")
 embedding_service = OpenAIEmbeddings(
     model=OPENAI_EMBEDDING_MODEL, api_key=GENERATION_OPENAI_API_KEY
 )
-print("✅ OpenAI Embeddings initialized.")
 
 # Rate limiting semaphore
 embedding_semaphore = Semaphore(MAX_CONCURRENT_EMBEDDINGS)
@@ -45,12 +44,10 @@ async def openai_embed(texts: List[str]) -> np.ndarray:
                         delay = EMBEDDING_RETRY_DELAY * (2**attempt) + random.uniform(
                             0, 1
                         )
-                        print(
-                            f"⚠ Embedding rate limit hit, retrying in {delay:.2f}s (attempt {attempt + 1})"
-                        )
+                        log.warning("embedding rate limit hit, retrying in %.2fs (attempt %d)", delay, attempt + 1)
                         await asyncio.sleep(delay)
                         continue
-                print(f"Error creating OpenAI embeddings: {e}")
+                log.error("error creating OpenAI embeddings: %s", e)
                 raise
 
 
@@ -71,10 +68,8 @@ async def openai_embed_query(query: str) -> np.ndarray:
                         delay = EMBEDDING_RETRY_DELAY * (2**attempt) + random.uniform(
                             0, 1
                         )
-                        print(
-                            f"⚠ Query embedding rate limit hit, retrying in {delay:.2f}s (attempt {attempt + 1})"
-                        )
+                        log.warning("query embedding rate limit hit, retrying in %.2fs (attempt %d)", delay, attempt + 1)
                         await asyncio.sleep(delay)
                         continue
-                print(f"Error creating OpenAI query embedding: {e}")
+                log.error("error creating OpenAI query embedding: %s", e)
                 raise

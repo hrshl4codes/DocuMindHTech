@@ -8,8 +8,11 @@ import asyncio
 import httpx
 from typing import List, Dict, Any, Optional, Tuple
 from dotenv import load_dotenv
+from services.logger import get_logger
 
 load_dotenv()
+
+log = get_logger("reranker")
 
 # Reranker configuration
 RERANKER_PROVIDER = os.getenv("RERANKER_PROVIDER", "cohere")  # cohere, jina, voyage, bge
@@ -81,7 +84,7 @@ class DocuMindRerankerService:
             else:
                 raise ValueError(f"Unsupported reranker provider: {self.provider}")
         except Exception as e:
-            print(f"❌ Reranking failed: {e}")
+            log.error("reranking failed: %s", e)
             # Fallback to simple text similarity
             return self._fallback_rerank(query, documents, top_k)
     
