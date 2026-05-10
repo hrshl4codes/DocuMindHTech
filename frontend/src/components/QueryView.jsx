@@ -4,7 +4,7 @@ import './QueryView.css';
 export default function QueryView({
   documentName,
   conversation,
-  citations,
+  citations = [],
   onQuery,
   onReset,
   loading,
