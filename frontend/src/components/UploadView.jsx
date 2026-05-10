@@ -22,11 +22,11 @@ export default function UploadView({ onUpload, loading, error }) {
     e.preventDefault();
     setDragover(false);
     const dropped = e.dataTransfer.files[0];
-    if (dropped) setFile(dropped);
+    if (dropped && dropped.size > 0) setFile(dropped);
   };
   const handleFileChange = (e) => {
     const selected = e.target.files[0];
-    if (selected) setFile(selected);
+    if (selected && selected.size > 0) setFile(selected);
   };
 
   const canUpload = (file || text.trim()) && !loading;
@@ -42,6 +42,9 @@ export default function UploadView({ onUpload, loading, error }) {
         </h1>
 
         <div
+          role="button"
+          tabIndex={0}
+          aria-label="File drop zone"
           className={[
             'upload-view__dropzone',
             'card',
@@ -52,6 +55,12 @@ export default function UploadView({ onUpload, loading, error }) {
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              fileInputRef.current.click();
+            }
+          }}
         >
           {file ? (
             <div className="upload-view__file-info">
@@ -89,7 +98,10 @@ export default function UploadView({ onUpload, loading, error }) {
 
         <button
           className="btn-primary upload-view__submit"
-          onClick={() => onUpload(file, text)}
+          onClick={() => {
+            if (!canUpload) return;
+            onUpload(file, text);
+          }}
           disabled={!canUpload}
         >
           {loading ? 'Uploading…' : 'Upload'}
