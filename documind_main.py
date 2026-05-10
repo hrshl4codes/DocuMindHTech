@@ -101,6 +101,8 @@ def create_app():
         except Exception as e:
             return {"error": str(e)}
 
+    MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # 50 MB
+
     @app.post("/api/upload")
     async def upload_endpoint(
         file: Optional[UploadFile] = File(None),
@@ -108,6 +110,12 @@ def create_app():
     ):
         if not file and not text:
             raise HTTPException(status_code=400, detail="Either file or text must be provided")
+
+        if file:
+            contents = await file.read()
+            if len(contents) > MAX_UPLOAD_BYTES:
+                raise HTTPException(status_code=413, detail="File exceeds the 50 MB limit")
+
         document_id = str(uuid.uuid4())
         return JSONResponse({
             "success": True,
