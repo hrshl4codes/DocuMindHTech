@@ -100,8 +100,8 @@ export default function LandingView({ onOpenApp }) {
           <p className="landing__slogan">Upload once. Ask anything.</p>
 
           <p className="landing__sub">
-            Upload a PDF or paste text. Ask anything —<br />
-            you get the answer and exactly where it came from.
+            Upload a PDF or paste text. Ask anything.<br />
+            You get the answer and exactly where it came from.
           </p>
 
           <div className="landing__ctas">
