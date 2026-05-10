@@ -24,6 +24,7 @@ export default function App() {
   useEffect(() => () => clearTimeout(transitionTimeout.current), []);
 
   const transitionTo = (nextView) => {
+    clearTimeout(transitionTimeout.current);
     setTransitionClass('exiting');
     transitionTimeout.current = setTimeout(() => {
       setView(nextView);
@@ -35,6 +36,7 @@ export default function App() {
   };
 
   const handleUpload = async (file, text) => {
+    if (loading) return;
     setLoading(true);
     setError('');
     try {
@@ -83,12 +85,20 @@ export default function App() {
   };
 
   const handleReset = () => {
-    transitionTo('upload');
-    setDocumentId(null);
-    setDocumentName('');
-    setConversation([]);
-    setCitations([]);
-    setError('');
+    clearTimeout(transitionTimeout.current);
+    setTransitionClass('exiting');
+    transitionTimeout.current = setTimeout(() => {
+      setDocumentId(null);
+      setDocumentName('');
+      setConversation([]);
+      setCitations([]);
+      setError('');
+      setView('upload');
+      setTransitionClass('entering');
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setTransitionClass('visible'));
+      });
+    }, 300);
   };
 
   return (
