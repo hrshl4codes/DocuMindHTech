@@ -59,6 +59,8 @@ html, body, #root {
 .view-wrapper {
   position: relative;
   z-index: 1;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .view-wrapper.exiting {
@@ -84,6 +86,7 @@ html, body, #root {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: var(--radius-card);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
 }
 
@@ -95,8 +98,8 @@ html, body, #root {
   padding: 0.6rem 1.5rem;
   border-radius: var(--radius-pill);
   border: none;
-  background: #ffffff;
-  color: #080808;
+  background: var(--text-primary);
+  color: var(--bg);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
@@ -122,7 +125,7 @@ html, body, #root {
 .btn-ghost:disabled { opacity: 0.35; cursor: not-allowed; }
 .btn-ghost:not(:disabled):hover {
   border-color: rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--input-bg);
 }
 
 /* Pill input base */
