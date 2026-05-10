@@ -92,7 +92,7 @@ export default function LandingView({ onOpenApp }) {
 
           <div className="landing__badge">
             <span className="landing__badge-dot">◉</span>
-            RAG-powered document intelligence →
+            ask questions, get cited answers →
           </div>
 
           <h1 className="landing__heading">DocuMind</h1>
@@ -100,8 +100,8 @@ export default function LandingView({ onOpenApp }) {
           <p className="landing__slogan">Upload once. Ask anything.</p>
 
           <p className="landing__sub">
-            Drop a PDF, paste text, or upload any document —<br />
-            get cited answers in seconds, powered by retrieval-augmented generation.
+            Upload a PDF or paste text. Ask anything —<br />
+            you get the answer and exactly where it came from.
           </p>
 
           <div className="landing__ctas">
@@ -139,7 +139,7 @@ export default function LandingView({ onOpenApp }) {
         </div>
 
         <div className="landing__section-label" aria-hidden="true">
-          RAG horizons
+          the pipeline
           <div className="landing__section-line" />
         </div>
       </section>
