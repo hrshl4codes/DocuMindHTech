@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import LandingView from './components/LandingView';
 import UploadView from './components/UploadView';
 import QueryView from './components/QueryView';
 import './App.css';
@@ -11,7 +12,7 @@ const API_BASE_URL =
     : 'https://documindrex.onrender.com');
 
 export default function App() {
-  const [view, setView] = useState('upload');
+  const [view, setView] = useState('landing');
   const [transitionClass, setTransitionClass] = useState('visible');
   const [documentId, setDocumentId] = useState(null);
   const [documentName, setDocumentName] = useState('');
@@ -100,6 +101,14 @@ export default function App() {
       });
     }, 300);
   };
+
+  if (view === 'landing') {
+    return (
+      <div className={`app view-wrapper ${transitionClass}`}>
+        <LandingView onOpenApp={() => transitionTo('upload')} />
+      </div>
+    );
+  }
 
   return (
     <div className={`app ${view === 'query' ? 'view-query' : ''}`}>
