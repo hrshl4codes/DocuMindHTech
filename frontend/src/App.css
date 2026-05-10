@@ -1,0 +1,149 @@
+:root {
+  --bg: #080808;
+  --glow-color: rgba(100, 140, 100, 0.12);
+  --card-bg: rgba(255, 255, 255, 0.04);
+  --card-border: rgba(255, 255, 255, 0.07);
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --input-border: rgba(255, 255, 255, 0.10);
+  --input-border-focus: rgba(255, 255, 255, 0.30);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.50);
+  --text-muted: rgba(255, 255, 255, 0.25);
+  --radius-card: 16px;
+  --radius-pill: 999px;
+}
+
+html, body, #root {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.9rem;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* App shell */
+.app {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* Glow blobs */
+.glow-blob {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--glow-color) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity 400ms ease;
+}
+
+.glow-blob--upload {
+  bottom: -100px;
+  left: -100px;
+  opacity: 1;
+}
+
+.glow-blob--query {
+  top: -100px;
+  right: -100px;
+  opacity: 0;
+}
+
+.app.view-query .glow-blob--upload { opacity: 0; }
+.app.view-query .glow-blob--query  { opacity: 1; }
+
+/* View transition wrapper */
+.view-wrapper {
+  position: relative;
+  z-index: 1;
+}
+
+.view-wrapper.exiting {
+  transition: opacity 300ms ease-in, transform 300ms ease-in;
+  opacity: 0;
+  transform: translateY(-16px);
+}
+
+.view-wrapper.entering {
+  transition: none;
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.view-wrapper.visible {
+  transition: opacity 350ms ease-out, transform 350ms ease-out;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Card base */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-card);
+  backdrop-filter: blur(12px);
+}
+
+/* Buttons */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.5rem;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: #ffffff;
+  color: #080808;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 200ms ease;
+}
+.btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-primary:not(:disabled):hover { opacity: 0.85; }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.5rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 200ms ease, background 200ms ease;
+}
+.btn-ghost:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-ghost:not(:disabled):hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Pill input base */
+.input-pill {
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 200ms ease;
+}
+.input-pill::placeholder { color: var(--text-muted); }
+.input-pill:focus { border-color: var(--input-border-focus); }
+
+/* Shimmer keyframe */
+@keyframes shimmer {
+  0%, 100% { opacity: 0.3; }
+  50%       { opacity: 0.7; }
+}
+.shimmer { animation: shimmer 1.5s ease-in-out infinite; }
