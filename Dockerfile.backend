@@ -1,0 +1,17 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install deps before copying app code for better layer caching
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Non-root user
+RUN useradd --create-home appuser
+USER appuser
+
+COPY --chown=appuser:appuser . .
+
+EXPOSE 8000
+
+CMD ["python", "documind_main.py"]

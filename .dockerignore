@@ -1,0 +1,9 @@
+.git
+.env
+*.pem
+frontend/node_modules
+frontend/build
+__pycache__
+*.pyc
+.DS_Store
+s
