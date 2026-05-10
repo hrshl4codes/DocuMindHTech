@@ -1,0 +1,130 @@
+.upload-view {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.upload-view__wordmark {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+}
+
+.upload-view__content {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.upload-view__heading {
+  font-size: clamp(3rem, 6vw, 5rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.upload-view__heading--dim {
+  color: var(--text-secondary);
+}
+
+.upload-view__dropzone {
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1.5px dashed rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  padding: 2rem;
+  transition: border-color 200ms ease, background 200ms ease;
+}
+
+.upload-view__dropzone--dragover {
+  border-color: #ffffff;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.upload-view__dropzone--filled {
+  border-style: solid;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.upload-view__dropzone-icon {
+  font-size: 1.75rem;
+  color: var(--text-secondary);
+}
+
+.upload-view__dropzone-text {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.upload-view__dropzone-types {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+}
+
+.upload-view__file-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.upload-view__file-name {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.upload-view__file-size {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.upload-view__divider {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+}
+
+.upload-view__textarea {
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  resize: none;
+  transition: border-color 200ms ease;
+}
+
+.upload-view__textarea::placeholder { color: var(--text-muted); }
+.upload-view__textarea:focus { border-color: var(--input-border-focus); }
+
+.upload-view__submit {
+  align-self: center;
+  min-width: 140px;
+  justify-content: center;
+}
+
+.upload-view__error {
+  text-align: center;
+  color: rgba(255, 100, 100, 0.8);
+  font-size: 0.85rem;
+}
