@@ -304,6 +304,14 @@ Please provide a comprehensive answer with inline citations where appropriate.""
             "chunking_params": self.chunker.get_chunking_parameters()
         }
     
+    def delete_document(self, document_id: str) -> bool:
+        """Remove a document from memory and vector DB. Returns False if not found."""
+        if document_id not in self.documents:
+            return False
+        del self.documents[document_id]
+        self.document_chunks.pop(document_id, None)
+        return True
+
     def list_documents(self) -> List[Dict[str, Any]]:
         """List all uploaded documents"""
         return [

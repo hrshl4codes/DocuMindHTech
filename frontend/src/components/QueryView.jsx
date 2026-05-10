@@ -42,7 +42,7 @@ export default function QueryView({
   return (
     <div className="query-view">
       <div className="query-view__topbar">
-        <button className="btn-ghost query-view__back" onClick={onReset}>
+        <button className="query-view__back" onClick={onReset}>
           ← New document
         </button>
         <span className="query-view__wordmark">DocuMind</span>
@@ -58,13 +58,13 @@ export default function QueryView({
             {conversation.map((entry, i) => (
               <div key={i} className="query-view__entry">
                 <p className="query-view__question">{entry.question}</p>
-                <div className="query-view__answer card">
+                <div className="query-view__answer">
                   <p className="query-view__answer-text">{entry.answer}</p>
                 </div>
               </div>
             ))}
             {loading && (
-              <div className="query-view__answer card shimmer">
+              <div className="query-view__answer shimmer">
                 <div className="query-view__shimmer-line" />
                 <div className="query-view__shimmer-line query-view__shimmer-line--short" />
               </div>
@@ -75,7 +75,7 @@ export default function QueryView({
 
           <div className="query-view__input-bar">
             <input
-              className="input-pill query-view__input"
+              className="query-view__input"
               placeholder="Ask a question about your document..."
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
@@ -83,7 +83,7 @@ export default function QueryView({
               disabled={loading}
             />
             <button
-              className="btn-ghost query-view__ask-btn"
+              className="query-view__ask-btn"
               onClick={handleSubmit}
               disabled={!question.trim() || loading}
             >
@@ -95,7 +95,7 @@ export default function QueryView({
         <div className={`query-view__citations ${hasCitations ? 'query-view__citations--visible' : ''}`}>
           <p className="query-view__citations-label">Sources</p>
           {citations.map((c, i) => (
-            <div key={i} className="query-view__citation card">
+            <div key={i} className="query-view__citation">
               <span className="query-view__citation-num">[{i + 1}]</span>
               <p className="query-view__citation-excerpt">
                 {c.text

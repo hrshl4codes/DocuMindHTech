@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
 :root {
   --bg: #080808;
   --glow-color: rgba(100, 140, 100, 0.12);
@@ -11,6 +13,11 @@
   --text-muted: rgba(255, 255, 255, 0.25);
   --radius-card: 16px;
   --radius-pill: 999px;
+
+  /* Amber accent */
+  --accent: #E8933A;
+  --accent-dim: rgba(232, 147, 58, 0.10);
+  --accent-border: rgba(232, 147, 58, 0.38);
 }
 
 html, body, #root {

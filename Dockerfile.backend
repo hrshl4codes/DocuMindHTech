@@ -1,16 +1,20 @@
-FROM python:3.11-slim
+# ── Stage 1: install deps ────────────────────────────────────
+FROM python:3.11-slim AS builder
+WORKDIR /build
+COPY requirements.txt .
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
+# ── Stage 2: runtime ─────────────────────────────────────────
+FROM python:3.11-slim AS runtime
 WORKDIR /app
 
-# Install deps before copying app code for better layer caching
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY --from=builder /install /usr/local
 
-# Non-root user
 RUN useradd --create-home appuser
 USER appuser
 
-COPY --chown=appuser:appuser . .
+COPY --chown=appuser:appuser services/ ./services/
+COPY --chown=appuser:appuser documind_main.py .
 
 EXPOSE 8000
 

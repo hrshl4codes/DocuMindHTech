@@ -20,9 +20,19 @@ Query → embed question → vector search → rerank → LLM → answer with ci
 
 ## Running locally
 
+**With Docker (recommended):**
+
+```bash
+docker-compose up
+```
+
+Frontend at `http://localhost:3000`, API at `http://localhost:8000`.
+
+**Without Docker:**
+
 ```bash
 pip install -r requirements.txt
-python minimal_main.py
+python documind_main.py
 ```
 
 App starts at `http://localhost:8000`. API docs at `/docs`.
@@ -74,22 +84,34 @@ BM25_WEIGHT = 0.3
 
 ```
 DocuMindHTech-main/
-├── minimal_main.py          # Entry point (Render-ready, no heavy deps)
-├── documind_main.py         # Full version with React frontend support
-├── requirements.txt
-├── render.yaml
-├── frontend/
-│   └── index.html
+├── documind_main.py         # Entry point — serves API + React SPA
+├── requirements.txt         # Runtime deps
+├── requirements-dev.txt     # Dev/test deps (pytest, ruff, httpx)
+├── Dockerfile.backend       # Multi-stage Python image
+├── Dockerfile.frontend      # Multi-stage nginx image
+├── docker-compose.yml       # Run backend + frontend together
+├── render.yaml              # Render deployment config
+├── tests/
+│   └── test_main.py         # pytest suite for all API endpoints
+├── frontend/                # React CRA application
+│   ├── src/
+│   │   ├── App.js
+│   │   └── components/
+│   │       ├── LandingView.jsx
+│   │       ├── UploadView.jsx
+│   │       ├── QueryView.jsx
+│   │       ├── UploadView.test.jsx
+│   │       └── QueryView.test.jsx
+│   └── package.json
 └── services/
-    ├── routes.py
-    ├── api_service.py       # Orchestrates the pipeline
+    ├── routes.py            # Full RAG API router (uses api_service)
+    ├── api_service.py       # Pipeline orchestrator
     ├── chunking_service.py
     ├── reranker_service.py
     ├── citation_service.py
     ├── cloud_vector_service.py
-    ├── embedding_service.py
     ├── chat_service.py
-    ├── text_extract.py
+    ├── text_extract.py      # Multi-format extraction with OCR
     └── image_analyze.py
 ```
 

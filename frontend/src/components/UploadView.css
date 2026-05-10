@@ -7,15 +7,23 @@
   padding: 2rem;
 }
 
+/* Wordmark */
 .upload-view__wordmark {
   position: absolute;
   top: 2rem;
   left: 2rem;
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  letter-spacing: 0.05em;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
 }
 
+.upload-view__wordmark::before {
+  content: '> ';
+  color: var(--accent);
+}
+
+/* Content column */
 .upload-view__content {
   width: 100%;
   max-width: 560px;
@@ -24,107 +32,217 @@
   gap: 1.25rem;
 }
 
+/* Heading */
 .upload-view__heading {
+  font-family: 'Syne', sans-serif;
   font-size: clamp(3rem, 6vw, 5rem);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
   text-align: center;
   margin-bottom: 0.5rem;
 }
 
-.upload-view__heading--dim {
-  color: var(--text-secondary);
+.upload-view__heading--accent {
+  color: var(--accent);
 }
 
+/* Dropzone */
 .upload-view__dropzone {
-  min-height: 180px;
+  position: relative;
+  min-height: 200px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border: 1.5px dashed rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
   cursor: pointer;
   padding: 2rem;
-  transition: border-color 200ms ease, background 200ms ease;
+  transition: border-color 250ms ease, background 250ms ease;
+  background: transparent;
+}
+
+.upload-view__dropzone:hover,
+.upload-view__dropzone:focus-visible {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.02);
+  outline: none;
 }
 
 .upload-view__dropzone--dragover {
-  border-color: #ffffff;
-  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--accent-border);
+  background: var(--accent-dim);
 }
 
 .upload-view__dropzone--filled {
-  border-style: solid;
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--accent-border);
+  background: var(--accent-dim);
 }
 
+/* Corner brackets */
+.upload-view__corner {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  transition: width 250ms ease, height 250ms ease, border-color 250ms ease;
+}
+
+.upload-view__corner--tl {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid rgba(255, 255, 255, 0.20);
+  border-left: 2px solid rgba(255, 255, 255, 0.20);
+}
+
+.upload-view__corner--tr {
+  top: -1px;
+  right: -1px;
+  border-top: 2px solid rgba(255, 255, 255, 0.20);
+  border-right: 2px solid rgba(255, 255, 255, 0.20);
+}
+
+.upload-view__corner--bl {
+  bottom: -1px;
+  left: -1px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.20);
+  border-left: 2px solid rgba(255, 255, 255, 0.20);
+}
+
+.upload-view__corner--br {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.20);
+  border-right: 2px solid rgba(255, 255, 255, 0.20);
+}
+
+.upload-view__dropzone:hover .upload-view__corner,
+.upload-view__dropzone:focus-visible .upload-view__corner,
+.upload-view__dropzone--dragover .upload-view__corner,
+.upload-view__dropzone--filled .upload-view__corner {
+  width: 22px;
+  height: 22px;
+  border-color: var(--accent);
+}
+
+/* Dropzone content */
 .upload-view__dropzone-icon {
-  font-size: 1.75rem;
-  color: var(--text-secondary);
+  font-size: 1.5rem;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  transition: color 250ms ease;
+}
+
+.upload-view__dropzone:hover .upload-view__dropzone-icon,
+.upload-view__dropzone--dragover .upload-view__dropzone-icon {
+  color: var(--accent);
 }
 
 .upload-view__dropzone-text {
   color: var(--text-secondary);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .upload-view__dropzone-types {
   color: var(--text-muted);
-  font-size: 0.8rem;
-  letter-spacing: 0.05em;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .upload-view__file-info {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.35rem;
 }
 
 .upload-view__file-name {
-  font-size: 0.95rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
   color: var(--text-primary);
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .upload-view__file-size {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-.upload-view__divider {
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 0.8rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--accent);
   letter-spacing: 0.05em;
 }
 
+/* Divider */
+.upload-view__divider {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.upload-view__divider::before,
+.upload-view__divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Textarea */
 .upload-view__textarea {
   width: 100%;
-  padding: 0.75rem 1.25rem;
-  border-radius: var(--radius-card);
-  border: 1px solid var(--input-border);
-  background: var(--input-bg);
+  padding: 0.875rem 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
   color: var(--text-primary);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-family: inherit;
   outline: none;
   resize: none;
   transition: border-color 200ms ease;
+  box-sizing: border-box;
 }
 
 .upload-view__textarea::placeholder { color: var(--text-muted); }
-.upload-view__textarea:focus { border-color: var(--input-border-focus); }
+.upload-view__textarea:focus { border-color: var(--accent-border); }
 
+/* Submit */
 .upload-view__submit {
-  align-self: center;
-  min-width: 140px;
+  align-self: stretch;
   justify-content: center;
+  border-radius: 8px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.875rem 1.5rem;
+  border: none;
+  background: var(--text-primary);
+  color: var(--bg);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: opacity 200ms ease;
 }
 
+.upload-view__submit:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.upload-view__submit:not(:disabled):hover {
+  opacity: 0.88;
+}
+
+/* Error */
 .upload-view__error {
   text-align: center;
-  color: rgba(255, 100, 100, 0.8);
-  font-size: 0.85rem;
+  color: rgba(255, 90, 80, 0.85);
+  font-size: 0.8rem;
+  font-family: 'JetBrains Mono', monospace;
 }
