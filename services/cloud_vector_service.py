@@ -24,7 +24,7 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 # Collection/Index configuration
 COLLECTION_NAME = "hackrx-documents"
-EMBEDDING_DIMENSION = 768  # Gemini embedding-001 dimensions
+EMBEDDING_DIMENSION = 1536  # OpenAI text-embedding-3-small dimensions
 
 class CloudVectorDB:
     """Unified interface for cloud vector databases"""
@@ -219,25 +219,23 @@ class CloudVectorDB:
     
     async def _upsert_pinecone(self, vectors: List[np.ndarray], texts: List[str], metadatas: List[Dict[str, Any]]) -> bool:
         """Upsert to Pinecone"""
+        import asyncio
         try:
-            # Prepare vectors for Pinecone
             vectors_to_upsert = []
-            for i, (vector, text, metadata) in enumerate(zip(vectors, texts, metadatas)):
+            for vector, text, metadata in zip(vectors, texts, metadatas):
                 vectors_to_upsert.append({
                     "id": str(uuid.uuid4()),
                     "values": vector.tolist(),
-                    "metadata": {
-                        "text": text,
-                        **metadata
-                    }
+                    "metadata": {"text": text, **metadata}
                 })
-            
-            # Upsert in batches
+
+            # Run sync Pinecone upsert in a thread so it doesn't block the event loop
             batch_size = 100
+            loop = asyncio.get_event_loop()
             for i in range(0, len(vectors_to_upsert), batch_size):
                 batch = vectors_to_upsert[i:i + batch_size]
-                self.collection.upsert(vectors=batch)
-            
+                await loop.run_in_executor(None, lambda b=batch: self.collection.upsert(vectors=b))
+
             print(f"✅ Upserted {len(vectors_to_upsert)} vectors to Pinecone")
             return True
         except Exception as e:
@@ -351,11 +349,17 @@ class CloudVectorDB:
     async def _search_pinecone(self, query_vector: np.ndarray, top_k: int, filter_metadata: Optional[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Search in Pinecone"""
         try:
-            results = self.collection.query(
-                vector=query_vector.tolist(),
-                top_k=top_k,
-                include_metadata=True,
-                filter=filter_metadata
+            import asyncio
+            flat_vector = query_vector.flatten().tolist()
+            loop = asyncio.get_event_loop()
+            results = await loop.run_in_executor(
+                None,
+                lambda: self.collection.query(
+                    vector=flat_vector,
+                    top_k=top_k,
+                    include_metadata=True,
+                    filter=filter_metadata
+                )
             )
             
             search_results = []

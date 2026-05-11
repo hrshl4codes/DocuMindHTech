@@ -37,42 +37,7 @@ async def gemini_chat(question: str, context_snippets: List[str]) -> str:
     Returns:
         Generated answer with inline citations
     """
-    try:
-        import google.generativeai as genai
-        
-        # Configure Gemini
-        GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-        if not GEMINI_API_KEY:
-            raise ValueError("GEMINI_API_KEY not found in environment variables")
-        
-        genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel('gemini-2.0-flash-exp')
-        
-        # Build context from retrieved document snippets
-        context = "\n---\n".join(context_snippets)
-        
-        # Create prompt for Track B compliance
-        prompt = f"""Based on the following document excerpts, please answer the question. Use inline citations [1], [2], etc. to reference the relevant excerpts.
-
-Question: {question}
-
-Document excerpts:
-{context}
-
-Please provide a comprehensive answer with inline citations where appropriate. Be precise and only use information from the provided excerpts."""
-
-        # Generate response using Gemini
-        response = model.generate_content(prompt)
-        
-        if response and response.text:
-            return response.text.strip()
-        else:
-            return "Could not generate an answer from the model."
-            
-    except Exception as e:
-        print(f"Error in gemini_chat: {e}")
-        # Fallback to OpenAI if Gemini fails
-        return await openai_chat(question, context_snippets)
+    return await openai_chat(question, context_snippets)
 
 async def openai_chat(question: str, context_snippets: List[str]) -> str:
     """

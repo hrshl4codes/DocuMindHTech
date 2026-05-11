@@ -5,18 +5,14 @@ so they are never shadowed by the wildcard path handler.
 """
 
 import os
-import uuid
 import uvicorn
-from typing import Optional
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request
+from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 
 load_dotenv()
-
-MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # 50 MB
 
 
 def create_app():
@@ -53,73 +49,8 @@ def create_app():
 
     # ── API routes ────────────────────────────────────────────
 
-    @app.get("/api")
-    async def api_info():
-        return {
-            "status": "running",
-            "endpoints": {
-                "health": "/health",
-                "upload": "/api/upload",
-                "query": "/api/query",
-                "docs": "/docs",
-            },
-        }
-
-    @app.get("/api/health")
-    async def api_health():
-        return {"status": "healthy"}
-
-    @app.get("/api/test")
-    async def test_endpoint():
-        return {
-            "status": "ok",
-            "note": "Set API keys and configure a vector database for full functionality.",
-        }
-
-    @app.post("/api/upload")
-    async def upload_endpoint(
-        file: Optional[UploadFile] = File(None),
-        text: Optional[str] = Form(None),
-    ):
-        if not file and not text:
-            raise HTTPException(status_code=400, detail="Either file or text must be provided")
-
-        if file:
-            contents = await file.read()
-            if len(contents) > MAX_UPLOAD_BYTES:
-                raise HTTPException(status_code=413, detail="File exceeds the 50 MB limit")
-
-        document_id = str(uuid.uuid4())
-        return JSONResponse({
-            "success": True,
-            "document_id": document_id,
-            "status": "minimal_mode",
-            "note": "Full functionality requires API keys and a configured vector database.",
-        })
-
-    @app.post("/api/query")
-    async def query_endpoint(request: Request):
-        try:
-            body = await request.json()
-        except Exception:
-            raise HTTPException(status_code=400, detail="Invalid JSON body")
-
-        if not body or "question" not in body or "document_id" not in body:
-            raise HTTPException(status_code=400, detail="question and document_id are required")
-
-        question = body.get("question", "").strip()
-        if not question:
-            raise HTTPException(status_code=400, detail="question cannot be empty")
-
-        document_id = body.get("document_id", "")
-        return JSONResponse({
-            "success": True,
-            "answer": (
-                f"Demo response to: '{question}' (document: {document_id}). "
-                "Full mode requires API keys and a vector database."
-            ),
-            "status": "minimal_mode",
-        })
+    from services.routes import router as api_router
+    app.include_router(api_router)
 
     # ── Frontend static files / SPA catch-all (registered LAST) ──
 

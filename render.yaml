@@ -5,11 +5,7 @@ services:
     region: oregon
     plan: starter
     rootDir: .
-    buildCommand: |
-      pip install --upgrade pip
-      pip uninstall pinecone-client pinecone -y || true
-      pip cache purge
-      pip install -r requirements.txt
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
     startCommand: python documind_main.py
     healthCheckPath: /health
     envVars:
