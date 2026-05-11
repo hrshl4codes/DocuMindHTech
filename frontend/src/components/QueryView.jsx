@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import './QueryView.css';
 
 export default function QueryView({
@@ -59,7 +60,9 @@ export default function QueryView({
               <div key={i} className="query-view__entry">
                 <p className="query-view__question">{entry.question}</p>
                 <div className="query-view__answer">
-                  <p className="query-view__answer-text">{entry.answer}</p>
+                  <div className="query-view__answer-text">
+                    <ReactMarkdown>{entry.answer}</ReactMarkdown>
+                  </div>
                 </div>
               </div>
             ))}
