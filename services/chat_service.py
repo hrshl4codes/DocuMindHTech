@@ -76,7 +76,7 @@ Please provide a comprehensive answer with inline citations where appropriate.""
                 response = await _get_openai_client().chat.completions.create(
                     model=OPENAI_LLM_MODEL,
                     messages=[
-                        {"role": "system", "content": "You are a helpful assistant that answers questions based on provided document excerpts. Always use inline citations [1], [2], etc. to reference the source material."},
+                        {"role": "system", "content": "You are a helpful assistant that answers questions based on provided document excerpts. Always use inline citations [1], [2], etc. to reference the source material. Format your responses using markdown: use headers, bullet points, bold, and code blocks where appropriate."},
                         {"role": "user", "content": prompt},
                     ],
                 )
