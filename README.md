@@ -1,8 +1,10 @@
 # DocuMind
 
+![DocuMind](docs/preview.png)
+
 Upload a document, ask questions, get answers with cited sources.
 
-Built as a production-grade RAG system — not a demo. Proper chunking, hybrid retrieval, reranking, and citations.
+Built as a production-grade RAG system. Proper chunking, hybrid retrieval, reranking, and citations.
 
 **Live:** https://docu-mind-h-tech.vercel.app
 
