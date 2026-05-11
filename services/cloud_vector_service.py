@@ -6,8 +6,7 @@ Supports: Pinecone, Weaviate, Qdrant, Supabase pgvector
 
 import os
 import uuid
-import asyncio
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional
 from dotenv import load_dotenv
 import numpy as np
 
@@ -25,7 +24,7 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 # Collection/Index configuration
 COLLECTION_NAME = "hackrx-documents"
-EMBEDDING_DIMENSION = 768  # Gemini embedding-001 dimensions
+EMBEDDING_DIMENSION = 1536  # OpenAI text-embedding-3-small dimensions
 
 class CloudVectorDB:
     """Unified interface for cloud vector databases"""
@@ -52,8 +51,7 @@ class CloudVectorDB:
     def _init_pinecone(self):
         """Initialize Pinecone client"""
         try:
-            import pinecone
-            from pinecone import Pinecone
+            from pinecone import Pinecone  # noqa: F401
             
             if not PINECONE_API_KEY:
                 raise ValueError("PINECONE_API_KEY not found in environment variables")
@@ -130,7 +128,7 @@ class CloudVectorDB:
         """Initialize Qdrant client"""
         try:
             from qdrant_client import QdrantClient
-            from qdrant_client.models import Distance, VectorParams, PointStruct
+            from qdrant_client.models import Distance, VectorParams, PointStruct  # noqa: F401
             
             if not QDRANT_URL:
                 raise ValueError("QDRANT_URL not found in environment variables")
@@ -144,7 +142,7 @@ class CloudVectorDB:
             try:
                 self.client.get_collection(COLLECTION_NAME)
                 print(f"✅ Qdrant connected to existing collection: {COLLECTION_NAME}")
-            except:
+            except Exception:
                 self.client.create_collection(
                     collection_name=COLLECTION_NAME,
                     vectors_config=VectorParams(
@@ -171,7 +169,7 @@ class CloudVectorDB:
             self.client: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
             
             # Create table if it doesn't exist
-            create_table_sql = f"""
+            _create_table_sql = f"""
             CREATE TABLE IF NOT EXISTS {COLLECTION_NAME} (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 content TEXT NOT NULL,
@@ -221,25 +219,23 @@ class CloudVectorDB:
     
     async def _upsert_pinecone(self, vectors: List[np.ndarray], texts: List[str], metadatas: List[Dict[str, Any]]) -> bool:
         """Upsert to Pinecone"""
+        import asyncio
         try:
-            # Prepare vectors for Pinecone
             vectors_to_upsert = []
-            for i, (vector, text, metadata) in enumerate(zip(vectors, texts, metadatas)):
+            for vector, text, metadata in zip(vectors, texts, metadatas):
                 vectors_to_upsert.append({
                     "id": str(uuid.uuid4()),
                     "values": vector.tolist(),
-                    "metadata": {
-                        "text": text,
-                        **metadata
-                    }
+                    "metadata": {"text": text, **metadata}
                 })
-            
-            # Upsert in batches
+
+            # Run sync Pinecone upsert in a thread so it doesn't block the event loop
             batch_size = 100
+            loop = asyncio.get_event_loop()
             for i in range(0, len(vectors_to_upsert), batch_size):
                 batch = vectors_to_upsert[i:i + batch_size]
-                self.collection.upsert(vectors=batch)
-            
+                await loop.run_in_executor(None, lambda b=batch: self.collection.upsert(vectors=b))
+
             print(f"✅ Upserted {len(vectors_to_upsert)} vectors to Pinecone")
             return True
         except Exception as e:
@@ -320,7 +316,7 @@ class CloudVectorDB:
                 })
             
             # Insert records
-            result = self.client.table(COLLECTION_NAME).insert(records).execute()
+            self.client.table(COLLECTION_NAME).insert(records).execute()
             
             print(f"✅ Upserted {len(records)} vectors to Supabase")
             return True
@@ -353,11 +349,17 @@ class CloudVectorDB:
     async def _search_pinecone(self, query_vector: np.ndarray, top_k: int, filter_metadata: Optional[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Search in Pinecone"""
         try:
-            results = self.collection.query(
-                vector=query_vector.tolist(),
-                top_k=top_k,
-                include_metadata=True,
-                filter=filter_metadata
+            import asyncio
+            flat_vector = query_vector.flatten().tolist()
+            loop = asyncio.get_event_loop()
+            results = await loop.run_in_executor(
+                None,
+                lambda: self.collection.query(
+                    vector=flat_vector,
+                    top_k=top_k,
+                    include_metadata=True,
+                    filter=filter_metadata
+                )
             )
             
             search_results = []
@@ -451,7 +453,7 @@ class CloudVectorDB:
         """Search in Supabase pgvector"""
         try:
             # Use pgvector similarity search
-            query = f"""
+            _query = f"""
             SELECT *, 1 - (embedding <=> %s) as similarity
             FROM {COLLECTION_NAME}
             ORDER BY embedding <=> %s

@@ -2,23 +2,58 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, production-revamp]
   pull_request:
     branches: [main]
 
 jobs:
+  # ── Backend: lint → test → build image ─────────────────────
   backend:
-    name: Build backend image
+    name: Backend
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install deps
+        run: |
+          pip install -r requirements.txt
+          pip install ruff pytest httpx pytest-asyncio
+
+      - name: Lint
+        run: ruff check services/ documind_main.py
+
+      - name: Test
+        run: pytest tests/ -v
+
+      - name: Build image
         run: docker build -f Dockerfile.backend -t documind-backend .
 
+  # ── Frontend: lint → test → build image ────────────────────
   frontend:
-    name: Build frontend image
+    name: Frontend
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install deps
+        run: cd frontend && npm ci --legacy-peer-deps
+
+      - name: Lint
+        run: cd frontend && npx eslint src/ --max-warnings=0
+
+      - name: Test
+        run: cd frontend && CI=false npm test -- --watchAll=false --ci
+
+      - name: Build image
         run: docker build -f Dockerfile.frontend -t documind-frontend .

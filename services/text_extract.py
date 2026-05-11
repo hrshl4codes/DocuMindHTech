@@ -244,7 +244,7 @@ async def process_document_content(
             # Try to decode as text fallback
             try:
                 return sanitize_text(raw_content.decode("utf-8", errors="ignore")), ext
-            except:
+            except Exception:
                 return f"Binary file: {blob_url} (cannot extract text)", ext
 
     except Exception as e:
@@ -288,7 +288,7 @@ async def detect_file_type_from_content(file_path):
                         return ".pptx"
                     else:
                         return ".zip"
-            except:
+            except Exception:
                 return ".zip"  # Default to ZIP if can't read as Office file
 
         # Email files
@@ -305,7 +305,7 @@ async def detect_file_type_from_content(file_path):
                 second_line = f.readline()
                 if second_line and "," in second_line:
                     return ".csv"
-    except:
+    except Exception:
         pass
 
     return None
@@ -372,7 +372,7 @@ async def process_file_content(content: bytes, ext: str, filename: str) -> str:
             # Try to decode as text
             try:
                 return sanitize_text(content.decode("utf-8", errors="ignore"))
-            except:
+            except Exception:
                 return f"Binary file: {filename} (cannot extract text)"
     except Exception as e:
         logging.error(f"Error processing {filename}: {str(e)}")

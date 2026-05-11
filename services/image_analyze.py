@@ -3,7 +3,6 @@ Image Analysis Service
 Handles image processing and OCR functionality
 """
 
-import os
 from typing import Optional, Dict, Any
 from dotenv import load_dotenv
 

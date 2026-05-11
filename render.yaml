@@ -5,12 +5,7 @@ services:
     region: oregon
     plan: starter
     rootDir: .
-    buildCommand: |
-      pip install --upgrade pip
-      pip uninstall pinecone-client pinecone -y || true
-      pip cache purge
-      pip install -r requirements.txt
-      cd frontend && npm install && REACT_APP_API_URL=https://documindrex.onrender.com npm run build
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
     startCommand: python documind_main.py
     healthCheckPath: /health
     envVars:
@@ -24,7 +19,3 @@ services:
         value: 0.0.0.0
       - key: PYTHON_VERSION
         value: 3.11.0
-      - key: NODE_VERSION
-        value: 18.17.0
-      - key: REACT_APP_API_URL
-        value: https://documindrex.onrender.com

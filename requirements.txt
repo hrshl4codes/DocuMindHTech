@@ -1,5 +1,4 @@
-# DocuMind AI - Minimal Requirements for Render Deployment
-# This file removes Pinecone temporarily to avoid package conflicts
+# DocuMind AI - Requirements
 
 # Core FastAPI and web framework
 fastapi>=0.100.0
@@ -35,6 +34,9 @@ pytesseract>=0.3.10
 
 # Search
 rank-bm25>=0.2.2
+
+# Vector database clients
+pinecone>=3.0.0
 
 # Utilities
 tldextract>=5.1.0

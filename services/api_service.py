@@ -3,11 +3,9 @@ DocuMind AI API Service
 Main service that orchestrates the complete RAG pipeline
 """
 
-import os
 import uuid
 import time
-import asyncio
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional
 from dotenv import load_dotenv
 
 from services.cloud_vector_service import get_cloud_vector_db
@@ -68,6 +66,7 @@ class DocuMindAPIService:
             }
             
             # Chunk the document
+            t0 = time.time()
             print(f"📄 Chunking document: {title or source}")
             chunks = self.chunker.chunk_document(
                 content=content,
@@ -75,21 +74,24 @@ class DocuMindAPIService:
                 title=title,
                 doc_id=doc_id
             )
-            
+            print(f"⏱ Chunking done in {time.time()-t0:.1f}s → {len(chunks) if chunks else 0} chunks")
+
             if not chunks:
                 return {
                     "success": False,
                     "error": "Failed to create chunks from document"
                 }
-            
+
             # Store chunks
             self.document_chunks[doc_id] = chunks
-            
+
             # Create embeddings
+            t1 = time.time()
             print(f"🧠 Creating embeddings for {len(chunks)} chunks")
             chunk_texts = [chunk["text"] for chunk in chunks]
             embeddings = await gemini_embed(chunk_texts)
-            
+            print(f"⏱ Embeddings done in {time.time()-t1:.1f}s")
+
             # Prepare metadata for vector database
             chunk_metadatas = []
             for chunk in chunks:
@@ -105,13 +107,15 @@ class DocuMindAPIService:
                 chunk_metadatas.append(metadata)
             
             # Upsert to vector database
+            t2 = time.time()
             print(f"💾 Storing vectors in {self.vector_db.provider}")
             success = await self.vector_db.upsert_vectors(
                 vectors=embeddings,
                 texts=chunk_texts,
                 metadatas=chunk_metadatas
             )
-            
+            print(f"⏱ Pinecone upsert done in {time.time()-t2:.1f}s")
+
             if not success:
                 return {
                     "success": False,
@@ -166,14 +170,26 @@ class DocuMindAPIService:
             print(f"🔍 Creating query embedding for: {question}")
             query_embedding = await gemini_embed_query(question)
             
-            # Search vector database
-            print(f"🔎 Searching vector database with top_k={top_k}")
+            # Retrieve more candidates for reranking — especially important for large docs
+            doc_chunk_count = len(self.document_chunks.get(document_id, []))
+            candidate_k = max(top_k * 4, min(doc_chunk_count, 60))
+            print(f"🔎 Searching vector database: top_k={top_k}, candidates={candidate_k}, doc_chunks={doc_chunk_count}")
             search_results = await self.vector_db.search_vectors(
                 query_vector=query_embedding,
-                top_k=top_k * 2,  # Get more results for reranking
+                top_k=candidate_k,
                 filter_metadata={"doc_id": document_id}
             )
-            
+
+            # Hybrid: merge BM25 keyword results from in-memory chunks so exact
+            # keyword matches (e.g. "Python") are never missed by vector search alone
+            bm25_results = self._bm25_search(document_id, question, top_k * 2)
+            seen_ids = {r.get("id") for r in search_results}
+            for r in bm25_results:
+                if r.get("id") not in seen_ids:
+                    search_results.append(r)
+                    seen_ids.add(r["id"])
+            print(f"🔀 Hybrid pool: {len(search_results)} candidates after BM25 merge")
+
             if not search_results:
                 return {
                     "success": True,
@@ -242,6 +258,32 @@ class DocuMindAPIService:
                 "error": str(e)
             }
     
+    def _bm25_search(self, document_id: str, query: str, top_k: int) -> List[Dict]:
+        """BM25 keyword search over in-memory chunks for a document."""
+        try:
+            from rank_bm25 import BM25Okapi
+            chunks = self.document_chunks.get(document_id, [])
+            if not chunks:
+                return []
+            tokenized = [c["text"].lower().split() for c in chunks]
+            bm25 = BM25Okapi(tokenized)
+            scores = bm25.get_scores(query.lower().split())
+            top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:top_k]
+            results = []
+            for idx in top_indices:
+                if scores[idx] > 0:
+                    chunk = chunks[idx]
+                    results.append({
+                        "id": chunk["chunk_id"],
+                        "score": float(scores[idx]),
+                        "text": chunk["text"],
+                        "metadata": chunk,
+                    })
+            return results
+        except Exception as e:
+            print(f"⚠ BM25 search failed: {e}")
+            return []
+
     async def _generate_answer_with_context(
         self, 
         question: str, 
@@ -304,6 +346,14 @@ Please provide a comprehensive answer with inline citations where appropriate.""
             "chunking_params": self.chunker.get_chunking_parameters()
         }
     
+    def delete_document(self, document_id: str) -> bool:
+        """Remove a document from memory and vector DB. Returns False if not found."""
+        if document_id not in self.documents:
+            return False
+        del self.documents[document_id]
+        self.document_chunks.pop(document_id, None)
+        return True
+
     def list_documents(self) -> List[Dict[str, Any]]:
         """List all uploaded documents"""
         return [
@@ -323,7 +373,7 @@ Please provide a comprehensive answer with inline citations where appropriate.""
             "vector_database": {
                 "provider": self.vector_db.provider,
                 "collection_name": "hackrx_documents",
-                "embedding_dimension": 3072
+                "embedding_dimension": 1536
             },
             "chunking": self.chunker.get_chunking_parameters(),
             "reranker": self.reranker.get_reranker_info(),

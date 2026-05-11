@@ -38,7 +38,7 @@ export default function UploadView({ onUpload, loading, error }) {
       <div className="upload-view__content">
         <h1 className="upload-view__heading">
           Drop a document.<br />
-          <span className="upload-view__heading--dim">Ask anything.</span>
+          <span className="upload-view__heading--accent">Ask anything.</span>
         </h1>
 
         <div
@@ -47,7 +47,6 @@ export default function UploadView({ onUpload, loading, error }) {
           aria-label="File drop zone"
           className={[
             'upload-view__dropzone',
-            'card',
             dragover ? 'upload-view__dropzone--dragover' : '',
             file ? 'upload-view__dropzone--filled' : '',
           ].join(' ')}
@@ -62,6 +61,11 @@ export default function UploadView({ onUpload, loading, error }) {
             }
           }}
         >
+          <span className="upload-view__corner upload-view__corner--tl" />
+          <span className="upload-view__corner upload-view__corner--tr" />
+          <span className="upload-view__corner upload-view__corner--bl" />
+          <span className="upload-view__corner upload-view__corner--br" />
+
           {file ? (
             <div className="upload-view__file-info">
               <span className="upload-view__file-name">{file.name}</span>
@@ -84,10 +88,10 @@ export default function UploadView({ onUpload, loading, error }) {
           onChange={handleFileChange}
         />
 
-        <p className="upload-view__divider">── or paste text below ──</p>
+        <p className="upload-view__divider">or paste text below</p>
 
         <textarea
-          className="upload-view__textarea card"
+          className="upload-view__textarea"
           placeholder="Paste your document text here..."
           value={text}
           rows={textFocused || text ? 3 : 1}
@@ -97,7 +101,7 @@ export default function UploadView({ onUpload, loading, error }) {
         />
 
         <button
-          className="btn-primary upload-view__submit"
+          className="upload-view__submit"
           onClick={() => {
             if (!canUpload) return;
             onUpload(file, text);

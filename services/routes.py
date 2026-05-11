@@ -3,14 +3,13 @@ DocuMind AI API Routes
 FastAPI routes for the DocuMind AI system
 """
 
-import os
-import uuid
 from typing import Optional
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 from services.api_service import get_api_service
+from services.text_extract import process_file_content
 
 # Initialize router
 router = APIRouter(prefix="/api", tags=["DocuMind AI"])
@@ -59,30 +58,9 @@ async def upload_document(
         if file and file.filename:
             # Handle file upload
             content = await file.read()
-            
-            # Extract text based on file type
-            if file.filename.endswith('.txt'):
-                content_str = content.decode('utf-8')
-            elif file.filename.endswith('.md'):
-                content_str = content.decode('utf-8')
-            elif file.filename.endswith('.pdf'):
-                # Use PyMuPDF for PDF processing
-                import fitz
-                doc = fitz.open(stream=content, filetype="pdf")
-                content_str = ""
-                for page in doc:
-                    content_str += page.get_text()
-                doc.close()
-            elif file.filename.endswith('.docx'):
-                # Use python-docx for DOCX processing
-                from docx import Document
-                import io
-                doc = Document(io.BytesIO(content))
-                content_str = "\n".join([paragraph.text for paragraph in doc.paragraphs])
-            else:
-                # For other file types, try to decode as text
-                content_str = content.decode('utf-8', errors='ignore')
-            
+            ext = ('.' + file.filename.rsplit('.', 1)[-1].lower()) if '.' in file.filename else ''
+            content_str = await process_file_content(content, ext, file.filename)
+
             result = await api_service.upload_document(
                 content=content_str,
                 source=source or file.filename,
@@ -168,14 +146,9 @@ async def delete_document(document_id: str):
     Delete a document and its chunks
     """
     try:
-        if document_id not in api_service.documents:
+        if not api_service.delete_document(document_id):
             raise HTTPException(status_code=404, detail="Document not found")
-        
-        # Remove from memory
-        del api_service.documents[document_id]
-        if document_id in api_service.document_chunks:
-            del api_service.document_chunks[document_id]
-        
+
         return {"success": True, "message": "Document deleted successfully"}
         
     except HTTPException:
@@ -237,7 +210,7 @@ async def get_vector_db_info():
         info = {
             "provider": api_service.vector_db.provider,
             "collection_name": "hackrx_documents",
-            "embedding_dimension": 3072,
+            "embedding_dimension": 1536,
             "base_url": api_service.vector_db.base_url,
             "api_configured": bool(api_service.vector_db.api_key)
         }

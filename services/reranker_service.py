@@ -4,9 +4,8 @@ Implements cloud-based reranking with Cohere, Jina, Voyage, or BGE
 """
 
 import os
-import asyncio
 import httpx
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any
 from dotenv import load_dotenv
 
 load_dotenv()
