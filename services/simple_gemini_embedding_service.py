@@ -1,5 +1,4 @@
 import os
-import asyncio
 import numpy as np
 from asyncio import Semaphore
 from typing import List
