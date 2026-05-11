@@ -3,7 +3,6 @@ import asyncio
 import random
 import numpy as np
 import requests
-import json
 from asyncio import Semaphore
 from typing import List
 from dotenv import load_dotenv

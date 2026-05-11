@@ -3,11 +3,9 @@ DocuMind AI API Routes
 FastAPI routes for the DocuMind AI system
 """
 
-import os
-import uuid
 from typing import Optional
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 from services.api_service import get_api_service

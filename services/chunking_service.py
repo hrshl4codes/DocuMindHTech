@@ -6,9 +6,8 @@ Chunking parameters: 800-1200 tokens with 10-15% overlap
 
 import re
 import hashlib
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.text_splitter import TokenTextSplitter
 
 class DocuMindChunkingService:
     """Intelligent chunking service for DocuMind AI"""

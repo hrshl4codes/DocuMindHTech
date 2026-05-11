@@ -6,8 +6,7 @@ Supports: Pinecone, Weaviate, Qdrant, Supabase pgvector
 
 import os
 import uuid
-import asyncio
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional
 from dotenv import load_dotenv
 import numpy as np
 
@@ -52,8 +51,7 @@ class CloudVectorDB:
     def _init_pinecone(self):
         """Initialize Pinecone client"""
         try:
-            import pinecone
-            from pinecone import Pinecone
+            from pinecone import Pinecone  # noqa: F401
             
             if not PINECONE_API_KEY:
                 raise ValueError("PINECONE_API_KEY not found in environment variables")
@@ -130,7 +128,7 @@ class CloudVectorDB:
         """Initialize Qdrant client"""
         try:
             from qdrant_client import QdrantClient
-            from qdrant_client.models import Distance, VectorParams, PointStruct
+            from qdrant_client.models import Distance, VectorParams, PointStruct  # noqa: F401
             
             if not QDRANT_URL:
                 raise ValueError("QDRANT_URL not found in environment variables")
@@ -144,7 +142,7 @@ class CloudVectorDB:
             try:
                 self.client.get_collection(COLLECTION_NAME)
                 print(f"✅ Qdrant connected to existing collection: {COLLECTION_NAME}")
-            except:
+            except Exception:
                 self.client.create_collection(
                     collection_name=COLLECTION_NAME,
                     vectors_config=VectorParams(
@@ -171,7 +169,7 @@ class CloudVectorDB:
             self.client: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
             
             # Create table if it doesn't exist
-            create_table_sql = f"""
+            _create_table_sql = f"""
             CREATE TABLE IF NOT EXISTS {COLLECTION_NAME} (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 content TEXT NOT NULL,
@@ -320,7 +318,7 @@ class CloudVectorDB:
                 })
             
             # Insert records
-            result = self.client.table(COLLECTION_NAME).insert(records).execute()
+            self.client.table(COLLECTION_NAME).insert(records).execute()
             
             print(f"✅ Upserted {len(records)} vectors to Supabase")
             return True
@@ -451,7 +449,7 @@ class CloudVectorDB:
         """Search in Supabase pgvector"""
         try:
             # Use pgvector similarity search
-            query = f"""
+            _query = f"""
             SELECT *, 1 - (embedding <=> %s) as similarity
             FROM {COLLECTION_NAME}
             ORDER BY embedding <=> %s

@@ -3,11 +3,9 @@ DocuMind AI API Service
 Main service that orchestrates the complete RAG pipeline
 """
 
-import os
 import uuid
 import time
-import asyncio
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional
 from dotenv import load_dotenv
 
 from services.cloud_vector_service import get_cloud_vector_db

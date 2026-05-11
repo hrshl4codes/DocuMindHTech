@@ -5,7 +5,6 @@ survive server restarts.
 """
 
 import sqlite3
-import json
 import time
 import os
 from typing import List, Dict, Any, Optional
