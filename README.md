@@ -4,7 +4,9 @@ Upload a document, ask questions, get answers with cited sources.
 
 Built as a production-grade RAG system — not a demo. Proper chunking, hybrid retrieval, reranking, and citations.
 
----
+**Live:**
+- Frontend: https://docu-mind-ht-tech-main.vercel.app
+- Backend: https://documindhtech-1.onrender.com
 
 ## How it works
 
@@ -25,8 +27,6 @@ Query
 
 Hybrid search matters: pure vector search misses exact keyword matches ("Python", "clause 4.2"). BM25 catches those. Both pools get merged and reranked before the LLM sees them.
 
----
-
 ## Stack
 
 | Layer | Choice |
@@ -39,9 +39,8 @@ Hybrid search matters: pure vector search misses exact keyword matches ("Python"
 | API | FastAPI + uvicorn |
 | Frontend | React (Create React App) |
 | CI | GitHub Actions (ruff + pytest + docker build) |
-| Deployment | Backend → Render, Frontend → Vercel |
-
----
+| Backend deployment | Render |
+| Frontend deployment | Vercel |
 
 ## Running locally
 
@@ -78,8 +77,6 @@ COHERE_API_KEY=...
 RERANKER_PROVIDER=cohere
 ```
 
----
-
 ## API
 
 | Method | Path | Description |
@@ -93,34 +90,34 @@ RERANKER_PROVIDER=cohere
 
 **Upload a file:**
 ```bash
-curl -X POST http://localhost:8000/api/upload \
+curl -X POST https://documindhtech-1.onrender.com/api/upload \
   -F "file=@report.pdf"
 ```
 
 **Query:**
 ```bash
-curl -X POST http://localhost:8000/api/query \
+curl -X POST https://documindhtech-1.onrender.com/api/query \
   -H "Content-Type: application/json" \
   -d '{"document_id": "...", "question": "What are the key findings?"}'
 ```
 
----
-
 ## Deployment
 
-**Backend (Render):**  
-`render.yaml` is pre-configured. Connect the repo in Render and add the env vars listed above as secrets.
+**Backend (Render):**
+`render.yaml` is pre-configured. Connect the repo, set the env vars below as secrets, and deploy.
 
-**Frontend (Vercel):**  
-`frontend/vercel.json` is pre-configured. Import the repo in Vercel, set root to `frontend/`.
+```
+GENERATION_OPENAI_API_KEY=...
+PINECONE_API_KEY=...
+VECTOR_DB_PROVIDER=pinecone
+```
 
----
+**Frontend (Vercel):**
+`frontend/vercel.json` is pre-configured. Import the repo, set Root Directory to `frontend/`, and deploy. No env vars needed.
 
 ## Chunking
 
 `RecursiveCharacterTextSplitter` with 1000-char chunks and 150-char overlap (~15%). Overlap keeps sentence context intact across boundaries, which matters for citation accuracy.
-
----
 
 ## Project structure
 
@@ -144,8 +141,6 @@ curl -X POST http://localhost:8000/api/query \
 ├── docker-compose.yml
 └── render.yaml
 ```
-
----
 
 ## CI
 
