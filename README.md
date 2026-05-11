@@ -1,123 +1,157 @@
 # DocuMind
 
-A RAG system that extracts text from documents, builds a vector index, and answers questions with inline citations.
+Upload a document, ask questions, get answers with cited sources.
+
+Built as a production-grade RAG system — not a demo. Proper chunking, hybrid retrieval, reranking, and citations.
+
+---
 
 ## How it works
 
 ```
-Upload document → extract text → chunk → embed → store in vector DB
-Query → embed question → vector search → rerank → LLM → answer with citations
+Upload
+  └─ extract text (PDF/DOCX/images/Excel/PPTX)
+  └─ chunk with overlap
+  └─ embed via OpenAI
+  └─ store in Pinecone
+
+Query
+  └─ embed question
+  └─ vector search (Pinecone) + BM25 keyword search (in-memory)
+  └─ merge candidate pools, rerank top results
+  └─ generate answer via OpenAI GPT-4o-mini
+  └─ return answer with inline citations
 ```
+
+Hybrid search matters: pure vector search misses exact keyword matches ("Python", "clause 4.2"). BM25 catches those. Both pools get merged and reranked before the LLM sees them.
+
+---
 
 ## Stack
 
-- **LLM / embeddings**: Gemini 2.5 Pro (primary), OpenAI GPT-4 (fallback)
-- **Vector database**: Pinecone (primary), Weaviate, Qdrant, Supabase pgvector
-- **Reranking**: Cohere, Jina, Voyage, BGE
-- **Document parsing**: PyMuPDF (PDF), python-docx (DOCX), pandas (Excel), Tesseract OCR (images)
-- **API**: FastAPI + uvicorn
-- **Deployment**: Render
+| Layer | Choice |
+|---|---|
+| LLM | OpenAI GPT-4o-mini |
+| Embeddings | OpenAI text-embedding-3-small (1536d) |
+| Vector DB | Pinecone (serverless) |
+| Reranker | Cohere (BM25 fallback if no key) |
+| Document parsing | PyMuPDF, python-docx, pandas, python-pptx |
+| API | FastAPI + uvicorn |
+| Frontend | React (Create React App) |
+| CI | GitHub Actions (ruff + pytest + docker build) |
+| Deployment | Backend → Render, Frontend → Vercel |
+
+---
 
 ## Running locally
 
-**With Docker (recommended):**
+**With Docker:**
 
 ```bash
+cp .env.example .env   # fill in your keys
 docker-compose up
 ```
 
-Frontend at `http://localhost:3000`, API at `http://localhost:8000`.
+Frontend at `localhost:3000`, API at `localhost:8000`.
 
 **Without Docker:**
 
 ```bash
 pip install -r requirements.txt
+cp .env.example .env   # fill in your keys
 python documind_main.py
 ```
 
-App starts at `http://localhost:8000`. API docs at `/docs`.
+API at `localhost:8000`, Swagger docs at `/docs`.
 
-For full functionality, set these environment variables:
+**Required environment variables:**
 
 ```env
-GEMINI_API_KEY=...
-PINECONE_API_KEY=...
-COHERE_API_KEY=...
+GENERATION_OPENAI_API_KEY=sk-...
+PINECONE_API_KEY=pcsk_...
+VECTOR_DB_PROVIDER=pinecone
 ```
 
-## Deploying to Render
+Optional (for Cohere reranking):
+```env
+COHERE_API_KEY=...
+RERANKER_PROVIDER=cohere
+```
 
-`render.yaml` is pre-configured. Connect the repo and Render picks it up automatically.
+---
 
-Health check: `GET /health`
-
-## API endpoints
+## API
 
 | Method | Path | Description |
-|--------|------|-------------|
-| GET | /health | Health check |
-| POST | /api/upload | Upload a document |
-| POST | /api/query | Ask a question about an uploaded document |
-| GET | /docs | Swagger UI |
+|---|---|---|
+| GET | `/health` | Health check |
+| POST | `/api/upload` | Upload a document (file or text) |
+| POST | `/api/query` | Ask a question about a document |
+| GET | `/api/documents` | List uploaded documents |
+| DELETE | `/api/documents/{id}` | Delete a document |
+| GET | `/docs` | Swagger UI |
+
+**Upload a file:**
+```bash
+curl -X POST http://localhost:8000/api/upload \
+  -F "file=@report.pdf"
+```
+
+**Query:**
+```bash
+curl -X POST http://localhost:8000/api/query \
+  -H "Content-Type: application/json" \
+  -d '{"document_id": "...", "question": "What are the key findings?"}'
+```
+
+---
+
+## Deployment
+
+**Backend (Render):**  
+`render.yaml` is pre-configured. Connect the repo in Render and add the env vars listed above as secrets.
+
+**Frontend (Vercel):**  
+`frontend/vercel.json` is pre-configured. Import the repo in Vercel, set root to `frontend/`.
+
+---
 
 ## Chunking
 
-Chunks are 800–1200 tokens with ~15% overlap using `RecursiveCharacterTextSplitter`. The overlap keeps context intact across chunk boundaries.
+`RecursiveCharacterTextSplitter` with 1000-char chunks and 150-char overlap (~15%). Overlap keeps sentence context intact across boundaries, which matters for citation accuracy.
 
-```python
-CHUNK_SIZE = 1000
-CHUNK_OVERLAP = 150
-```
-
-## Retrieval
-
-Queries run hybrid search (vector + BM25), then rerank the top 10 results down to 5. The reranker corrects cases where cosine similarity surfaces technically similar but contextually wrong chunks.
-
-```python
-TOP_K = 10
-RERANK_TOP_K = 5
-VECTOR_WEIGHT = 0.7
-BM25_WEIGHT = 0.3
-```
+---
 
 ## Project structure
 
 ```
-DocuMindHTech-main/
-├── documind_main.py         # Entry point — serves API + React SPA
-├── requirements.txt         # Runtime deps
-├── requirements-dev.txt     # Dev/test deps (pytest, ruff, httpx)
-├── Dockerfile.backend       # Multi-stage Python image
-├── Dockerfile.frontend      # Multi-stage nginx image
-├── docker-compose.yml       # Run backend + frontend together
-├── render.yaml              # Render deployment config
+├── documind_main.py          # Entry point — FastAPI app, mounts router + SPA
+├── services/
+│   ├── routes.py             # API router (/api/*)
+│   ├── api_service.py        # Pipeline orchestrator (upload + query)
+│   ├── chunking_service.py   # RecursiveCharacterTextSplitter wrapper
+│   ├── cloud_vector_service.py  # Pinecone / Weaviate / Qdrant / Supabase
+│   ├── reranker_service.py   # Cohere / BM25 reranker
+│   ├── citation_service.py   # Inline citation mapping
+│   ├── chat_service.py       # OpenAI chat wrapper
+│   ├── simple_gemini_embedding_service.py  # OpenAI embeddings
+│   └── text_extract.py       # Multi-format extraction
+├── frontend/                 # React app
 ├── tests/
-│   └── test_main.py         # pytest suite for all API endpoints
-├── frontend/                # React CRA application
-│   ├── src/
-│   │   ├── App.js
-│   │   └── components/
-│   │       ├── LandingView.jsx
-│   │       ├── UploadView.jsx
-│   │       ├── QueryView.jsx
-│   │       ├── UploadView.test.jsx
-│   │       └── QueryView.test.jsx
-│   └── package.json
-└── services/
-    ├── routes.py            # Full RAG API router (uses api_service)
-    ├── api_service.py       # Pipeline orchestrator
-    ├── chunking_service.py
-    ├── reranker_service.py
-    ├── citation_service.py
-    ├── cloud_vector_service.py
-    ├── chat_service.py
-    ├── text_extract.py      # Multi-format extraction with OCR
-    └── image_analyze.py
+│   └── test_main.py          # pytest suite (mocked, no credentials needed)
+├── Dockerfile.backend        # Multi-stage Python image (non-root)
+├── Dockerfile.frontend       # Multi-stage nginx image
+├── docker-compose.yml
+└── render.yaml
 ```
 
-## Notes
+---
 
-- Gemini has a 1,000 req/min rate limit for both generation and embeddings
-- Pinecone is faster but more expensive than Weaviate or Qdrant
-- Reranking adds 200–500ms per query but meaningfully improves accuracy on longer documents
-- Memory usage is roughly 2GB for 1,000 documents with embeddings cached
+## CI
+
+GitHub Actions runs on every push to `main`:
+
+1. **Backend**: ruff lint → pytest → docker build
+2. **Frontend**: eslint → jest → docker build
+
+Tests are mocked — CI passes without API keys.
