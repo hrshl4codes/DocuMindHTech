@@ -15,15 +15,21 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # AI model configuration
-GENERATION_OPENAI_API_KEY = os.getenv("GENERATION_OPENAI_API_KEY")
 OPENAI_LLM_MODEL = "o4-mini"
 MAX_CONCURRENT_LLM = 3
 LLM_RETRY_DELAY = 2.0
 MAX_RETRIES = 3
 
-# Initialize clients and rate limiting
-openai_client = AsyncOpenAI(api_key=GENERATION_OPENAI_API_KEY)
+# Rate limiting semaphore
 llm_semaphore = Semaphore(MAX_CONCURRENT_LLM)
+_openai_client: AsyncOpenAI | None = None
+
+
+def _get_openai_client() -> AsyncOpenAI:
+    global _openai_client
+    if _openai_client is None:
+        _openai_client = AsyncOpenAI(api_key=os.getenv("GENERATION_OPENAI_API_KEY"))
+    return _openai_client
 
 
 async def gemini_chat(question: str, context_snippets: List[str]) -> str:
@@ -67,7 +73,7 @@ Document excerpts:
 Please provide a comprehensive answer with inline citations where appropriate."""
 
                 # Generate response using OpenAI
-                response = await openai_client.chat.completions.create(
+                response = await _get_openai_client().chat.completions.create(
                     model=OPENAI_LLM_MODEL,
                     messages=[
                         {"role": "system", "content": "You are a helpful assistant that answers questions based on provided document excerpts. Always use inline citations [1], [2], etc. to reference the source material."},
@@ -187,7 +193,7 @@ Analyze the document and URL data, follow any multi-step instructions mentioned 
 </instruction>
 """
 
-                response = await openai_client.chat.completions.create(
+                response = await _get_openai_client().chat.completions.create(
                     model=OPENAI_LLM_MODEL,
                     messages=[
                         {"role": "system", "content": prompt},
