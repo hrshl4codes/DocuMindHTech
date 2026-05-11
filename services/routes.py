@@ -44,6 +44,8 @@ async def get_frontend():
     except FileNotFoundError:
         return HTMLResponse(content="<h1>Frontend not found</h1>", status_code=404)
 
+MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # 50 MB
+
 @router.post("/upload")
 async def upload_document(
     file: Optional[UploadFile] = File(None),
@@ -56,20 +58,18 @@ async def upload_document(
     """
     try:
         if file and file.filename:
-            # Handle file upload
             content = await file.read()
+            if len(content) > MAX_UPLOAD_BYTES:
+                raise HTTPException(status_code=413, detail="File exceeds the 50 MB limit")
             ext = ('.' + file.filename.rsplit('.', 1)[-1].lower()) if '.' in file.filename else ''
             content_str = await process_file_content(content, ext, file.filename)
-
             result = await api_service.upload_document(
                 content=content_str,
                 source=source or file.filename,
                 title=title or file.filename,
                 doc_type=file.filename.split('.')[-1] if '.' in file.filename else 'unknown'
             )
-            
         elif text:
-            # Handle text upload
             result = await api_service.upload_document(
                 content=text,
                 source=source or "text_input",
@@ -78,9 +78,9 @@ async def upload_document(
             )
         else:
             raise HTTPException(status_code=400, detail="Either file or text must be provided")
-        
         return result
-        
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -89,6 +89,8 @@ async def query_document(request: QueryRequest):
     """
     Query a document with a question
     """
+    if not request.question.strip():
+        raise HTTPException(status_code=400, detail="question cannot be empty")
     try:
         result = await api_service.query_document(
             document_id=request.document_id,
@@ -96,7 +98,8 @@ async def query_document(request: QueryRequest):
             top_k=request.top_k
         )
         return result
-        
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

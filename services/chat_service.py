@@ -22,7 +22,7 @@ MAX_RETRIES = 3
 
 # Rate limiting semaphore
 llm_semaphore = Semaphore(MAX_CONCURRENT_LLM)
-_openai_client: AsyncOpenAI | None = None
+_openai_client = None  # AsyncOpenAI, lazy
 
 
 def _get_openai_client() -> AsyncOpenAI:

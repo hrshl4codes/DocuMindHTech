@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from asyncio import Semaphore
-from typing import List
+from typing import List, Optional
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 
@@ -11,7 +11,7 @@ EMBEDDING_MODEL = "text-embedding-3-small"
 MAX_CONCURRENT_EMBEDDINGS = 5
 
 embedding_semaphore = Semaphore(MAX_CONCURRENT_EMBEDDINGS)
-_client: AsyncOpenAI | None = None
+_client = None  # type: Optional[AsyncOpenAI]
 
 
 def _get_client() -> AsyncOpenAI:
