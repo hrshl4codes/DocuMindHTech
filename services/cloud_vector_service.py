@@ -54,7 +54,9 @@ class CloudVectorDB:
             from pinecone import Pinecone  # noqa: F401
             
             if not PINECONE_API_KEY:
-                raise ValueError("PINECONE_API_KEY not found in environment variables")
+                print("⚠️ PINECONE_API_KEY not set — vector DB unavailable")
+                self.collection = None
+                return
             
             pc = Pinecone(api_key=PINECONE_API_KEY)
             self.client = pc
@@ -82,10 +84,11 @@ class CloudVectorDB:
                 self.collection = None
             
         except ImportError:
-            raise ImportError("pinecone not installed. Run: pip install pinecone")
+            print("⚠️ pinecone not installed — vector DB unavailable")
+            self.collection = None
         except Exception as e:
             print(f"❌ Pinecone initialization failed: {e}")
-            raise
+            self.collection = None
     
     def _init_weaviate(self):
         """Initialize Weaviate client"""

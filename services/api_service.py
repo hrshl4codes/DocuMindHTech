@@ -381,9 +381,10 @@ Please provide a comprehensive answer with inline citations where appropriate.""
             "total_chunks": sum(len(chunks) for chunks in self.document_chunks.values())
         }
 
-# Global API service instance
-documind_api = DocuMindAPIService()
+_documind_api: Optional[DocuMindAPIService] = None
 
 def get_api_service() -> DocuMindAPIService:
-    """Get the global DocuMind API service instance"""
-    return documind_api
+    global _documind_api
+    if _documind_api is None:
+        _documind_api = DocuMindAPIService()
+    return _documind_api
