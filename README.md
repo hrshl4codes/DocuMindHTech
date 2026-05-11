@@ -4,9 +4,7 @@ Upload a document, ask questions, get answers with cited sources.
 
 Built as a production-grade RAG system — not a demo. Proper chunking, hybrid retrieval, reranking, and citations.
 
-**Live:**
-- Frontend: https://docu-mind-ht-tech-main.vercel.app
-- Backend: https://documindhtech-1.onrender.com
+**Live:** https://docu-mind-h-tech.vercel.app
 
 ## How it works
 
