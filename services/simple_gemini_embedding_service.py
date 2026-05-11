@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from asyncio import Semaphore
-from typing import List, Optional
+from typing import List
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 
