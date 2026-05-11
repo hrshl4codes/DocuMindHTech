@@ -9,7 +9,7 @@ const API_BASE_URL =
   process.env.REACT_APP_API_URL ||
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? ''
-    : 'https://documindrex.onrender.com');
+    : 'https://documindhtech-1.onrender.com');
 
 export default function App() {
   const [view, setView] = useState('landing');
